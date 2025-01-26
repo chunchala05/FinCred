@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>AI-Powered Personal Finance Manager</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'dashboard.css' %}" />
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="header">
+            <h1>AI-Powered Personal Finance Manager</h1>
+            <div class="user-profile">
+                <!-- Ensure this image path is correct for your static files -->
+                <img src="{% static 'useravatar.png' %}" alt="User Avatar" />
+                <p>Welcome, {{ user.first_name }} {{ user.last_name }} </p>
+                <button class="sidebar-toggle" id="toggleSidebar" aria-label="Toggle Sidebar">
+                    &#9776;
+                </button>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="{% url 'transaction_overview' %}">Transactions</a></li>
+                <li><a href="#credit-score">Credit Score</a></li>
+                <li><a href="{% url 'stock_portfolio' %}">Stock Portfolio</a></li>
+                <li><a href="{% url 'budget_create' %}">Budget</a></li>
+                <li>
+                    {% if savings_account %}
+                        {% for emi in emi_loans %}
+                            <a href="{% url 'emi_detail' pk=emi.pk %}"> EMI Details </a>
+                        {% empty %}
+                            <a href="{% url 'emi_create' %}" class="btn btn-primary">Create EMI</a>
+                        {% endfor %}
+                    {% endif %}
+                </li>
+                    {% if savings_account %}
+                        <a href="{% url 'savings_account' savings_account.id %}">Saving Account</a>
+                    {% else %}
+                    <a href="{% url 'createsavingsaccount' %}" class="btn btn-primary">Create Savings Account</a>
+                    {% endif %}
+                </li>
+                
+                
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <section id="overview" class="section">
+                <h2>Overview</h2>
+                <div class="financial-summary">
+                    <div class="card">
+                        <h3>Total Balance</h3>
+                        <p>₹ {{ savings_account.balance |default:0|floatformat:2 }}  </p>
+                    </div>
+                    <div class="card">
+                        <h3>Monthly Expense</h3>
+                        <p> ₹ {{ detail.total_expenditure|floatformat:2 }} </p>
+                    </div>
+                    <div class="card">
+                        <h3>Goal Savings</h3>
+                        {% if savings_account.goals %}
+                            <ul>
+                                {% for goal in savings_account.goals %}
+                                    <li>₹ {{ goal|floatformat:2 }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No savings goals set.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <section id="transactions" class="section">
+                <h2>Recent Transactions</h2>
+                <div class="transaction-list">
+                    {% if transactions %}
+                    {% for transaction in transactions %}
+                        <div class="transaction">
+                            <p>{{ transaction.get_category }}</p>
+                            <p>
+                                {% if transaction.credit %}
+                                    + ₹{{ transaction.amount|floatformat:2 }}
+                                {% else %}
+                                    - ₹{{ transaction.amount|floatformat:2 }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No recent transactions found.</p>
+                {% endif %}
+                </div>
+            </section>
+            
+
+            <section id="credit-score" class="section">
+                <h2>Credit Score</h2>
+                <div class="credit-score-summary">
+                    <h3>Your Credit Score: 720</h3>
+                    <p>Credit score is calculated based on your finacial history.</p>
+                    <div class="credit-score-chart">
+                        <div class="score-bar" style="width: 72%;"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="budget" class="section">
+                <h2>Budget</h2>
+                <div class="budget-overview">
+                    {% if budgets.exists %}
+                        {% for budget in budgets %}
+                            <p>Category: {{ budget.get_category_display }}</p>
+                            <p>Budget Limit: ₹{{ budget.limit|floatformat:2 }}</p>
+                        {% endfor %}
+                    {% else %}
+            <p>No budgets set for this month.</p>
+        {% endif %}
+                </div>
+            </section>
+        </main>
+
+    </div>
+
+    <!-- Sidebar Toggle Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggleSidebar = document.getElementById("toggleSidebar");
+            const sidebar = document.getElementById("sidebar");
+
+            toggleSidebar.addEventListener("click", function () {
+                sidebar.classList.toggle("open");
+                
+                // Optional: Change the button's aria-expanded attribute for accessibility
+                const isOpen = sidebar.classList.contains("open");
+                toggleSidebar.setAttribute("aria-expanded", isOpen);
+            });
+        });
+    </script>
+
+</body>
+</html>
+

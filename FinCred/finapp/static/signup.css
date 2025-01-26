@@ -1,0 +1,70 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #e0f7fa; /* Light cyan background */
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center; /* Centered heading */
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+form {
+    width: 600px; /* Fixed width for the form */
+    margin: 0 auto; /* Center the form on the page */
+    padding: 20px; /* Padding inside the form */
+    background-color: #fff; /* White background for the form */
+    border: 1px solid #ccc; /* Light gray border */
+    border-radius: 5px; /* Rounded corners */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+form p {
+    margin-bottom: 15px; /* Space between paragraphs */
+}
+
+form label {
+    display: block; /* Block display for labels */
+    margin-bottom: 5px; /* Space below labels */
+    font-weight: bold; /* Bold text for labels */
+}
+
+form input[type="text"],
+form input[type="email"],
+form input[type="password"],
+form input[type="first_name"] {
+    width: 100%; /* Full width inputs */
+    padding: 10px; /* Increased padding for comfort */
+    box-sizing: border-box; /* Include padding in width calculation */
+    margin-bottom: 15px; /* Space below inputs */
+    border: 1px solid #ccc; /* Light gray border for inputs */
+    border-radius: 4px; /* Slightly rounded corners for inputs */
+}
+
+form input[type="text"]:focus,
+form input[type="email"]:focus,
+form input[type="password"]:focus,
+form input[type="first_name"]:focus {
+    border-color: #259ff1;
+    outline: none /* Remove default outline */
+}
+
+form button {
+    width: 100%; /* Full width button */
+    padding: 10px; /* Padding inside button */
+    background-color: #259ff1;
+    border: none; /* No border for button */
+    color: white; /* White text color */
+    font-size: 16px; /* Font size for button text */
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+form button:hover {
+    background-color: #006eb8; 
+}
+
+.alert {
+    margin-bottom: 20px; /* Space below alert messages */
+}

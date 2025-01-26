@@ -1,0 +1,10 @@
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    
+    {% if current_price %}
+        <p>Current Price for {{ selected_stock.company_name }}: ${{ current_price }}</p>
+    {% endif %}
+
+    <button type="submit">Add to Portfolio</button>
+</form>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FinCred</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'landing.css' %}">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <img src="{% static 'finclogo.png' %}" alt="NSE Logo" class="logo">
+            <h1>Welcome to FinCred</h1>
+            <img src="{% static 'finclogo.png' %}" alt="NIFTY 50 Logo" class="logo">
+        </div>
+        <div class="auth-buttons">
+            <a href="{% url 'signup_view' %}" class="button">Sign Up</a>
+            <a href="{% url 'login' %}" class="button">Login</a>
+        </div>
+    </div>
+    </header>
+    <main>
+        <section id="about-fc">
+            <h2>About FinCred</h2>
+            <p>FinCred is an AI-Powered Personal Finance Manager with Integrated Credit Scoring System</p>
+        </section>
+        <section id="about-fic">
+            <h2>Project Description</h2>
+            <p>The project helps users manage their finances effectively by tracking expenses, analyzing spending habits, and providing budgeting recommendations. Additionally, the system includes an integrated credit scoring module that predicts user’s credit score based on their financial data, leveraging a machine learning model, specifically Random Forest.</p>
+        </section>
+        <section id="PersonalFinanceManagement">
+            <h2>Personal Finance Management</h2>
+            <div id="charts-container">
+                <div class="chart-item">
+                    <h3>Manage</h3>
+                    <p>Tracks and categorizes user expenses and income.</p>
+                    <div id="chart_div"></div>
+                </div>
+                <div class="chart-item">
+                    <h3>Visualizations </h3>
+                    <p>Provide visualizations and summaries of spending patterns.</p>
+                    <div id="ma_chart"></div>
+                </div>
+                <div class="chart-item">
+                    <h3>Credit Scoring System</h3>
+                    <p>predict credit scores based on user financial data</p>
+                    <div id="obv_chart"></div>
+                </div>
+                <div class="chart-item">
+                    <h3>Chatbot </h3>
+                    <p>Chatbot to make the system more interactive.</p>
+                    <div id="market_condition"></div>
+                </div>
+            </div>
+        </section>
+        <section id="user-auth">
+            <h2>Manage your Finances</h2>
+            <p>To get started, <a href="{% url 'signup_view' %}">Sign Up</a>
+sign up</a>. If you already have an account, <a href="{% url 'login' %}">login</a>.</p>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 FinCred. All rights reserved.</p>
+    </footer>
+</body>
+</html>

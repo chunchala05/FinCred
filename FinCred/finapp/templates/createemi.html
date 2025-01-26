@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>AI-Powered Personal Finance Manager</title>
+  
+</head>
+<style>
+    /* EMI Create View Styles */
+    #emi-create-view {
+        margin: 30px auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 8px;
+        max-width: 600px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    #emi-create-view h1 {
+        font-size: 24px;
+        color: #333333;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    #emi-create-view form {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    #emi-create-view label {
+        font-size: 16px;
+        color: #333333;
+        margin-bottom: 5px;
+    }
+    
+    #emi-create-view input {
+        padding: 10px;
+        font-size: 14px;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        width: 100%;
+    }
+    
+    #emi-create-view input:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+    
+    #emi-create-view button {
+        padding: 10px;
+        font-size: 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    #emi-create-view button:hover {
+        background-color: #0056b3;
+    }
+    
+    #emi-create-view .form-errors {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        border-radius: 5px;
+    }
+    
+    #emi-create-view .form-errors p {
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    #emi-create-view .form-errors ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+    .navbar {
+        display: flex;
+        position: sticky;
+        align-items: center;
+        justify-content: space-between;
+        top: 0px;
+        background: #259ff1;
+        background-blend-mode: darken;
+        background-size: cover;
+        color: white;
+        padding: 10px 20px;
+    }
+
+    .nav-list {
+        display: flex;
+        list-style: none;
+    }
+
+    .nav-list li {
+        margin-right: 20px;
+    }
+
+    .nav-list li:last-child {
+        margin-right: 0;
+    }
+
+    .nav-list li a {
+        text-decoration: none;
+        color: white;
+        font-size: 18px;
+        transition: color 0.3s ease-in-out;
+    }
+
+    .nav-list li a:hover {
+        color: #003457;
+        /* Change the color on hover */
+    }
+
+    .rightNav {
+        text-align: right;
+    }
+
+
+    .btn {
+        background-color: #003457;
+        color: #000;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
+    }
+
+    .btn:hover {
+        background-color: #000;
+        /* Change the background color on hover */
+        color: #003457;
+    }
+    </style>
+<nav class="navbar">
+    <ul class="nav-list">
+        <li><a href="{% url 'dashboardnew' %}">Dashboard</a></li>
+        <li><a href="#about">Savings</a></li>
+        <li><a href="#services">Transactions</a></li>
+    </ul>
+  </nav>
+<div id="emi-create-view">
+    <h1>Create New EMI Loan</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <label for="loan_amount">Loan Amount (₹):</label>
+        <input type="number" id="loan_amount" name="loan_amount" step="0.01" min="0" placeholder="Enter loan amount" required>
+        
+        <label for="interest_rate">Interest Rate (%):</label>
+        <input type="number" id="interest_rate" name="interest_rate" step="0.01" min="0" placeholder="Enter interest rate" required>
+        
+        <label for="tenure_months">Tenure (Months):</label>
+        <input type="number" id="tenure_months" name="tenure_months" min="1" placeholder="Enter tenure in months" required>
+        
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date" name="start_date" required>
+       
+        
+        <label for="paid_amount">Amount Paid:</label>
+        <input type="number" id="paid_amount" name="paid_amount" step="0.01" min="0" placeholder="Enter amount paid" required>
+    
+        <label for="linked_savings_account">Linked Account:</label>
+        <select id="linked_savings_account" name="linked_savings_account" required>
+            <option value="" disabled selected>Select an account</option>
+            {% for account in form.fields.linked_savings_account.queryset %}
+                <option value="{{ account.id }}">{{ account.name }} - ₹{{ account.balance }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Create Loan</button>
+    </form>
+
+    {% if form.errors %}
+    <div class="form-errors">
+        <p><strong>Please correct the following errors:</strong></p>
+        <ul>
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+</html>

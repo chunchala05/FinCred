@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Overview</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+</head>
+<style>
+    table .btn-danger {
+   background-color:#dc3545; 
+   color:white; 
+   padding:.5em .75em; 
+   border-radius:.25em; 
+   border:none; 
+   cursor:pointer; 
+}
+
+table .btn-danger:hover { 
+   background-color:#c82333; 
+}
+
+table .btn-sm { 
+   padding:.25em .5em; 
+   font-size:.875em; 
+}
+</style>
+<body class="bg-gray-900 text-white font-sans">
+    <nav class="bg-gray-800 p-4 shadow-md">
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-bold">FinCred</h1>
+            <ul class="flex space-x-6">
+                <li><a href="{% url 'dashboardnew' %}" class="hover:text-green-400">Dashboard</a></li>
+                <li><a href="{% url 'budget_create' %}" class="hover:text-green-400">My Budget</a></li>
+                
+            </ul>
+            <a href="{% url 'transaction_create' %}" class="bg-green-500 px-4 py-2 rounded hover:bg-green-600">+ New Transaction</a>
+        </div>
+    </nav>
+
+    <div class="p-6">
+        <!-- Summary Cards -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <h2 class="text-lg font-medium">Balance</h2>
+                <p class="text-2xl font-bold">
+                    ₹ {% if savings_account %} {{ savings_account.balance|floatformat:2 }} {% else %} 0.00 {% endif %}
+                </p>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <h2 class="text-lg font-medium">Monthly Earnings</h2>
+                <p class="text-2xl font-bold text-green-400">+ ₹ {{ monthly_earnings|floatformat:2 }}</p>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <h2 class="text-lg font-medium">Monthly Expenses</h2>
+                <p class="text-2xl font-bold text-red-400">
+                    - ₹ {% if total_expenditure %} {{ total_expenditure|floatformat:2 }} {% else %} 0.00 {% endif %}
+                </p>
+            </div>
+        </section>
+    </div>
+    
+         <!-- Latest Transactions Section -->
+         <section class="mt-8">
+            <h3 class="text-lg font-medium mb-4">Latest Transactions</h3>
+            <div class="bg-gray-800 p-4 rounded-lg overflow-auto">
+                <table class="table-auto w-full text-left">
+                    <thead>
+                        <tr class="border-b border-gray-700">
+                            <th class="py-2">Name</th>
+                            <th class="py-2">Date</th>
+                            <th class="py-2">Amount</th>
+                            <th class="py-2">Category</th>
+                            <th class="py-2">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr class="border-b border-gray-700">
+                            <td class="py-2">{{ transaction.user.username }}</td>
+                            <td class="py-2">{{ transaction.time|date:"Y-m-d" }}</td>
+                            <td class="py-2">R$ {{ transaction.amount|floatformat:2 }}</td>
+                            <td class="py-2">{{ transaction.get_category }}</td>
+                            <td class="py-2">{{ transaction.description }}</td>
+                            <td>
+                                <form method="post" action="{% url 'transactiondelete' transaction.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="py-2 text-center">No transactions found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="space-y-8">
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <h3 class="text-lg font-medium mb-4">Daily Expenses</h3>
+                <div class="relative h-[500px]">
+                    <canvas id="dailyExpensesChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <h3 class="text-lg font-medium mb-4">Expense Distribution by Category</h3>
+                <div class="relative h-[500px]">
+                    <canvas id="categoryDistributionChart"></canvas>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Data passed from Django views
+        const dates = JSON.parse('{{ dates|escapejs }}');
+        const expenses = JSON.parse('{{ expenses|escapejs }}');
+        const categories = JSON.parse('{{ categories|escapejs }}');
+        const categoryTotals = JSON.parse('{{ category_totals|escapejs }}');
+
+        // Daily Expenses Chart
+        const ctxDaily = document.getElementById('dailyExpensesChart').getContext('2d');
+        new Chart(ctxDaily, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Daily Expenses',
+                    data: expenses,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: 'white' } }
+                },
+                scales: {
+                    x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                    y: { beginAtZero: true, ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                }
+            }
+        });
+
+        // Expense Distribution Chart
+        const ctxCategory = document.getElementById('categoryDistributionChart').getContext('2d');
+        new Chart(ctxCategory, {
+            type: 'pie',
+            data: {
+                labels: categories,
+                datasets: [{
+                    label: 'Category Distribution',
+                    data: categoryTotals,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)'
+                    ],
+                    borderColor: 'rgba(255, 255, 255, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: 'white' } },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `${context.label}: ₹${context.raw.toFixed(2)}`
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{% block content %}
+  <h2>Select a Stock from Nifty 50</h2>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Stock</th>
+        <th>Ticker</th>
+        <th>Price</th>
+        <th>Market Cap</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for stock in nifty_50_stocks %}
+        <tr>
+          <td>{{ stock.name }}</td>
+          <td>{{ stock.symbol }}</td>
+          <td>${{ stock.price }}</td>
+          <td>${{ stock.market_cap }}</td>
+          <td>
+            <a href="{% url 'add_to_portfolio' %}">Add new stock to portfolio</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <a href="{% url 'add_to_portfolio' %}">Add new stock to portfolio</a>
+  {% endblock %}

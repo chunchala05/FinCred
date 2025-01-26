@@ -1,0 +1,25 @@
+
+{% block content %}
+<h2>Stock Details: {{ stock.company_name }}</h2>
+
+<p><strong>Ticker:</strong> {{ stock.ticker }}</p>
+<p><strong>Current Price:</strong> ${{ stock.current_price }}</p>
+
+<h3>Historical Data</h3>
+<ul>
+  {% for date, price in stock.historical_data %}
+    <li>{{ date }}: ${{ price }}</li>
+  {% empty %}
+    <li>No historical data available.</li>
+  {% endfor %}
+</ul>
+
+<a href="{% url 'stock_detail' stock.id %}" class="btn btn-secondary">Predict Future Price</a>
+<a href="{% url 'stock_portfolio' %}" class="btn btn-primary">Back to Portfolio</a>
+
+<h2>Future Price Prediction for {{ stock.company_name }}</h2>
+
+<p>Current Price: ${{ stock.current_price }}</p>
+<p>Predicted Future Price: ${{ future_price }}</p>
+
+{% endblock %}

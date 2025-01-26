@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>AI-Powered Personal Finance Manager</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'transaction.css' %}" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+
+<nav class="navbar">
+    <ul class="nav-list">
+        <li><a href="{% url 'dashboardnew' %}">Dashboard</a></li>
+        <li><a href="#about">Savings</a></li>
+        <li><a href="#services">Transactions</a></li>
+    </ul>
+</nav>
+<body>
+  
+{% block content %}
+<div class="container mt-5">
+    <h2>Create a New Transaction</h2>
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        
+        <div class="mb-3">
+            <label for="id_details" class="form-label">Details</label>
+            {{ form.details }}
+        </div>
+        
+        <div class="mb-3">
+            <label for="id_amount" class="form-label">Amount (₹)</label>
+            {{ form.amount }}
+        </div>
+        
+        <div class="mb-3">
+            <label for="id_type" class="form-label">Type</label>
+            {{ form.type }}
+        </div>
+        
+        <div class="form-check mb-3">
+            {{ form.credit }}
+            <label for="id_credit" class="form-check-label">Credit Transaction</label>
+        </div>
+        
+        <div class="mb-3">
+            <label for="id_description" class="form-label">Description</label>
+            {{ form.description }}
+        </div>
+        
+        <div class="mb-3">
+            <label for="id_tags" class="form-label">Tags</label>
+            {{ form.tags }}
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Create Transaction</button>
+    </form>
+
+    <hr>
+
+    <h2>Your Transactions</h2>
+    {% if transactions %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Credit</th>
+                    <th>Description</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.get_category }}</td>
+                        <td>₹{{ transaction.amount|floatformat:2 }}</td>
+                        <td>{{ transaction.credit|yesno:"Yes,No" }}</td>
+                        <td>{{ transaction.description }}</td>
+                        <td>{{ transaction.date_created }}</td>
+                        <td>
+                            <form method="post" action="{% url 'transactiondelete' transaction.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No transactions found.</p>
+    {% endif %}
+</div>
+{% endblock %}
+</body>
+</html>

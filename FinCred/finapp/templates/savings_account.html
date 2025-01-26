@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savings Account</title>
+    {% load static %}
+    <style>
+        /* Basic Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            display: flex;
+            position: sticky;
+            align-items: center;
+            justify-content: space-between;
+            top: 0px;
+            background: #259ff1;
+            background-blend-mode: darken;
+            background-size: cover;
+            color: white;
+            padding: 10px 20px;
+        }
+
+        .nav-list {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-list li {
+            margin-right: 20px;
+        }
+
+        .nav-list li:last-child {
+            margin-right: 0;
+        }
+
+        .nav-list li a {
+            text-decoration: none;
+            color: white;
+            font-size: 18px;
+            transition: color 0.3s ease-in-out;
+        }
+
+        .nav-list li a:hover {
+            color: #003457;
+            /* Change the color on hover */
+        }
+
+        .rightNav {
+            text-align: right;
+        }
+
+
+        .btn {
+            background-color: #003457;
+            color: #000;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .btn:hover {
+            background-color: #000;
+            /* Change the background color on hover */
+            color: #003457;
+        }
+        header {
+            background-color: #259ff1;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            
+        
+        }
+
+        header h1 {
+            font-size: 24px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #343a40;
+        }
+        p {
+            font-size: 1rem;
+            color: #495057;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        ul li {
+            margin: 5px 0;
+        }
+        .btn {
+            display: inline-block;
+            margin: 5px;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            text-decoration: none;
+            color: #fff;
+            background-color: #007bff;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        .btn-danger:hover {
+            background-color: #a71d2a;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .btn-warning:hover {
+            background-color: #d39e00;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #565e64;
+        }
+        form {
+            margin-top: 10px;
+        }
+        form .form-group {
+            margin-bottom: 15px;
+        }
+        form label {
+            font-weight: bold;
+        }
+        form input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+        }
+        .hidden {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+    </style>
+    <script>
+        // JavaScript to toggle sections
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <ul class="nav-list">
+            <li><a href="{% url 'dashboardnew' %}">Dashboard</a></li>
+            <li><a href="#about">Savings</a></li>
+            <li><a href="#services">Transactions</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <h1>Savings Account</h1>
+        <h2>Welcome, {{ request.user.username }}</h2>
+        <p><strong>Account Balance:</strong> ₹{{ savings_account.balance|floatformat:2 }}</p>
+        <p><strong>Date Created:</strong> {{ savings_account.date_created }}</p>
+        <p><strong>Goals:</strong></p>
+        <ul>
+            {% for goal in savings_account.goals %}
+                <li>{{ goal }}</li>
+            {% empty %}
+                <li>No goals set.</li>
+            {% endfor %}
+        </ul>
+
+        <!-- Navigation Buttons -->
+        <hr>
+        <div>
+            <a href="#" class="btn" onclick="showSection('dashboardnew')">Dashboard</a>
+            <a href="#" class="btn btn-success" onclick="showSection('deposit')">Deposit</a>
+            <a href="#" class="btn btn-warning" onclick="showSection('withdraw')">Withdraw</a>
+        </div>
+        <hr>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="section">
+            <h2>Dashboard</h2>
+            <p>Manage your savings account from here.</p>
+        </div>
+
+        <!-- Deposit Section -->
+        <div id="deposit" class="section hidden">
+            <h2>Deposit Funds</h2>
+            <form method="post" action="{% url 'savings_account_deposit' savings_account.id %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="id_amount">Deposit Amount:</label>
+                    <input type="number" id="id_amount" name="amount" min="0.01" step="0.01" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Deposit</button>
+                <a href="#" class="btn btn-secondary" onclick="showSection('dashboardnew')">Cancel</a>
+            </form>
+        </div>
+
+        <!-- Withdraw Section -->
+        <div id="withdraw" class="section hidden">
+            <h2>Withdraw Funds</h2>
+            <form method="post" action="{% url 'savings_account_withdraw' savings_account.id %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="id_amount">Withdraw Amount:</label>
+                    <input type="number" id="id_amount" name="amount" min="0.01" step="0.01" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Withdraw</button>
+                <a href="#" class="btn btn-secondary" onclick="showSection('dashboardnew')">Cancel</a>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

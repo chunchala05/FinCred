@@ -1,0 +1,16 @@
+<tbody>
+    {% for budget in object_list %}
+        <tr>
+            <td>{{ budget.get_category_display }}</td>
+            <td>₹{{ budget.limit|floatformat:2 }}</td>
+            <td>{{ budget.end_date|default:"No End Date" }}</td>
+            <td>{{ budget.date_created }}</td>
+            <td>
+                <form method="post" action="{% url 'budget_delete' budget.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+</tbody>

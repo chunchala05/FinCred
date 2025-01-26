@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Budget</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'budget.css' %}"> <!-- Replace with your stylesheet -->    
+</head>
+<body>
+    <nav class="navbar">
+        <ul class="nav-list">
+            <li><a href="{% url 'dashboardnew' %}">Dashboard</a></li>
+            <li><a href="#about">Savings</a></li>
+            <li><a href="#services">Transactions</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <h1>Create Budget</h1>
+
+        <!-- Display any validation errors at the top -->
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li><strong>{{ field }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            
+            <!-- Render the form fields -->
+            <div class="form-group">
+                <label for="id_category">Category:</label>
+                {{ form.category }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_limit">Budget Limit:</label>
+                {{ form.limit }}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="{% url 'budget_create' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+
+        <hr> </hr>
+
+        <p>{{ budgets }}</p>
+
+        <!-- Table to display budgets -->
+        <!-- budget_list.html -->
+        <!-- Table to display budgets -->
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Budget Limit</th>
+                    <th>End Date</th>
+                    <th>Date Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for budget in budgets %}
+                    <tr>
+                        <td>{{ budget.get_category_display }}</td>
+                        <td>₹{{ budget.limit|floatformat:2 }}</td>
+                        <td>{{ budget.end_date|default:"No End Date" }}</td>
+                        <td>{{ budget.date_created }}</td>
+                        <td>
+                            <form method="post" action="{% url 'budget_delete' budget.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">No budgets created yet.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+<!-- Pagination -->
+{% if is_paginated %}
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+{% endif %}
