@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>AI-Powered Personal Finance Manager</title>
     {% load static %}
+    {% load credit_score_filters %}
     <link rel="stylesheet" href="{% static 'dashboard.css' %}" />
 </head>
 <body>
@@ -105,10 +106,21 @@
             <section id="credit-score" class="section">
                 <h2>Credit Score</h2>
                 <div class="credit-score-summary">
-                    <h3>Your Credit Score: 720</h3>
-                    <p>Credit score is calculated based on your finacial history.</p>
+                    <h3>Your Credit Score: {{ credit_score }}</h3>
+                    <p>Credit score is calculated based on your financial history.</p>
                     <div class="credit-score-chart">
-                        <div class="score-bar" style="width: 72%;"></div>
+                        <div class="score-bar" style="width: {{ credit_score|subtract:300|divide:550|multiply:100 }}%;"></div>
+                    </div>
+                    
+                    <div class="score-components">
+                        <h4>Score Components:</h4>
+                        <ul>
+                            <li>Payment History: {{ score_components.payment_history|floatformat:1 }}%</li>
+                            <li>Credit Utilization: {{ score_components.credit_utilization|floatformat:1 }}%</li>
+                            <li>Account Age: {{ score_components.account_age|floatformat:1 }} months</li>
+                            <li>Savings Ratio: {{ score_components.savings_ratio|floatformat:1 }}%</li>
+                            <li>EMI Payment Ratio: {{ score_components.emi_payment_ratio|floatformat:1 }}%</li>
+                        </ul>
                     </div>
                 </div>
             </section>
@@ -144,6 +156,386 @@
                 toggleSidebar.setAttribute("aria-expanded", isOpen);
             });
         });
+    </script>
+
+    <!-- Add this right before the closing </body> tag -->
+    <div class="chatbot-container" id="chatbot">
+        <div class="chatbot-header">
+            <h3>FinGuide Assistant</h3>
+            <button id="toggleChat">
+                <span class="open-icon">▼</span>
+                <span class="close-icon">▲</span>
+            </button>
+        </div>
+        <div class="chatbot-messages" id="chatMessages">
+            <div class="message bot-message">
+                Hello! I'm your FinGuide Assistant. I can help you understand your dashboard. What would you like to know about?
+            </div>
+        </div>
+        <div class="chatbot-input">
+            <input type="text" id="userInput" placeholder="Type your question...">
+            <button id="sendMessage">Send</button>
+        </div>
+    </div>
+
+    <!-- Add this CSS to your existing styles or in dashboard.css -->
+    <style>
+    .chatbot-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 350px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        max-height: 500px;
+        transition: all 0.3s ease;
+        border: 1px solid #e1e1e1;
+    }
+
+    .chatbot-header {
+        padding: 15px 20px;
+        background: linear-gradient(135deg, #2193b0, #6dd5ed);
+        color: white;
+        border-radius: 10px 10px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .chatbot-header h3 {
+        font-size: 1.2em;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .chatbot-header h3::before {
+        content: '🤖';
+        font-size: 1.2em;
+    }
+
+    .chatbot-messages {
+        padding: 15px;
+        overflow-y: auto;
+        flex-grow: 1;
+        max-height: 350px;
+        background: #f8f9fa;
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+
+    .message {
+        margin: 8px 0;
+        padding: 12px 16px;
+        border-radius: 15px;
+        max-width: 80%;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        line-height: 1.4;
+        font-size: 0.95em;
+        transition: all 0.2s ease;
+        clear: both;
+        position: relative;
+        margin-bottom: 15px;
+    }
+
+    .bot-message {
+        background: white;
+        border-bottom-left-radius: 5px;
+        border-left: 3px solid #2193b0;
+        float: left;
+        margin-right: auto;
+        border-top-right-radius: 15px;
+        border-bottom-right-radius: 15px;
+        border-bottom-left-radius: 5px;
+    }
+
+    .user-message {
+        background: linear-gradient(135deg, #2193b0, #6dd5ed);
+        color: white;
+        border-bottom-right-radius: 5px;
+        float: right;
+        margin-left: auto;
+        border-top-left-radius: 15px;
+        border-bottom-left-radius: 15px;
+        border-bottom-right-radius: 5px;
+    }
+
+    .message.bot-message::before {
+        content: '🤖';
+        position: absolute;
+        left: -25px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.9em;
+    }
+
+    .message.user-message::after {
+        content: '👤';
+        position: absolute;
+        right: -25px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.9em;
+    }
+
+    .chatbot-input {
+        padding: 15px;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 8px;
+        background: white;
+        border-radius: 0 0 15px 15px;
+    }
+
+    .chatbot-input input {
+        flex-grow: 1;
+        padding: 12px 15px;
+        border: 2px solid #e1e1e1;
+        border-radius: 5px;
+        font-size: 0.95em;
+        transition: all 0.3s ease;
+    }
+
+    .chatbot-input input:focus {
+        outline: none;
+        border-color: #2193b0;
+        box-shadow: 0 0 0 3px rgba(33, 147, 176, 0.1);
+    }
+
+    .chatbot-input button {
+        padding: 12px 20px;
+        background: linear-gradient(135deg, #2193b0, #6dd5ed);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 80px;
+    }
+
+    .chatbot-input button:hover {
+        background: linear-gradient(135deg, #1b7a94, #5bc0db);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .chatbot-input button:active {
+        transform: translateY(1px);
+    }
+
+    .chatbot-input button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .message.bot-message.suggestion {
+        background: #f8f9fa;
+        border-left: 3px solid #6dd5ed;
+        font-size: 0.9em;
+        cursor: pointer;
+        float: left;
+        clear: both;
+        margin-left: 20px;
+        margin-top: 5px;
+        max-width: 70%;
+    }
+
+    .message.bot-message.suggestion:hover {
+        background: #fff;
+        transform: translateX(3px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Add clearfix to ensure proper floating */
+    .chatbot-messages::after {
+        content: '';
+        display: table;
+        clear: both;
+    }
+    </style>
+
+    <!-- Add this JavaScript before the closing </body> tag -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatbot = document.getElementById('chatbot');
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendMessage');
+        const toggleChat = document.getElementById('toggleChat');
+        const chatContainer = document.querySelector('.chatbot-messages');
+        let isProcessing = false;  // Flag to prevent multiple rapid sends
+
+        const responses = {
+            'overview': {
+                text: 'The Overview section provides a snapshot of your financial health:\n\n' +
+                      '• Total Balance: Your current available funds\n' +
+                      '• Monthly Expenses: Your spending this month\n' +
+                      '• Savings Goals: Track your progress towards financial targets\n\n' +
+                      'Would you like to know more about any specific part?',
+                suggestions: ['Tell me about my balance', 'Explain monthly expenses', 'How do savings goals work?']
+            },
+            'transactions': {
+                text: 'The Transactions section shows your money movements:\n\n' +
+                      '• Green numbers (+): Money received\n' +
+                      '• Red numbers (-): Money spent\n' +
+                      '• Categories: Help track spending patterns\n\n' +
+                      'What would you like to know more about?',
+                suggestions: ['How to add transactions?', 'View transaction history', 'Understanding categories']
+            },
+            'credit score': {
+                text: 'Your Credit Score is a measure of your financial health:\n\n' +
+                      '• Payment History (30%)\n' +
+                      '• Credit Utilization (15%)\n' +
+                      '• Account Age (10%)\n' +
+                      '• Savings Ratio (25%)\n' +
+                      '• EMI Payments (20%)\n\n' +
+                      'Want to learn how to improve your score?',
+                suggestions: ['How to improve score?', 'Explain components', 'What is a good score?']
+            },
+            'budget': 'The Budget section helps you track your spending limits across different categories.',
+            'balance': 'Your Total Balance shows the current amount in your savings account.',
+            'expenses': 'Monthly Expenses show your total spending for the current month.',
+            'goals': 'Savings Goals help you track your progress towards financial targets.',
+            'help': 'I can help you understand any section of your dashboard. Try asking about: overview, transactions, credit score, budget, balance, expenses, or goals.',
+            'default': "I'm not sure about that. Try asking about specific sections like overview, transactions, credit score, or budget."
+        };
+
+        function addMessage(message, isUser = false, suggestions = []) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.innerHTML = message.replace(/\n/g, '<br>');
+            chatMessages.appendChild(messageDiv);
+
+            // Add suggestions if available
+            if (suggestions.length > 0) {
+                suggestions.forEach(suggestion => {
+                    const suggestionDiv = document.createElement('div');
+                    suggestionDiv.className = 'message bot-message suggestion';
+                    suggestionDiv.textContent = suggestion;
+                    suggestionDiv.onclick = () => {
+                        addMessage(suggestion, true);
+                        handleUserQuery(suggestion.toLowerCase());
+                    };
+                    chatMessages.appendChild(suggestionDiv);
+                });
+            }
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function highlightSection(section) {
+            const element = document.querySelector(`#${section}`);
+            if (element) {
+                element.classList.add('highlight');
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => element.classList.remove('highlight'), 2000);
+            }
+        }
+
+        function handleUserQuery(text) {
+            let response = responses.default;
+            for (const [key, value] of Object.entries(responses)) {
+                if (text.includes(key)) {
+                    response = value;
+                    highlightSection(key.replace(' ', '-'));
+                    break;
+                }
+            }
+
+            setTimeout(() => {
+                addMessage(response.text || response);
+                if (response.suggestions) {
+                    addMessage('Here are some related questions you might have:', false, response.suggestions);
+                }
+            }, 500);
+        }
+
+        function handleUserInput() {
+            const text = userInput.value.toLowerCase().trim();
+            if (!text || isProcessing) return;
+            
+            isProcessing = true;
+            sendButton.disabled = true;
+
+            addMessage(userInput.value, true);
+            userInput.value = '';
+            
+            try {
+                handleUserQuery(text);
+            } finally {
+                setTimeout(() => {
+                    isProcessing = false;
+                    sendButton.disabled = false;
+                }, 1000);
+            }
+        }
+
+        // Fix event listeners
+        if (sendButton) {
+            sendButton.onclick = function(e) {
+                e.preventDefault();
+                handleUserInput();
+            };
+        }
+
+        if (userInput) {
+            userInput.onkeypress = function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleUserInput();
+                }
+            };
+
+            userInput.oninput = function() {
+                if (sendButton) {
+                    sendButton.disabled = !this.value.trim();
+                }
+            };
+        }
+
+        // Restore toggle chat functionality
+        if (toggleChat) {
+            toggleChat.onclick = function() {
+                if (chatContainer) {
+                    chatContainer.style.display = 
+                        chatContainer.style.display === 'none' ? 'block' : 'none';
+                    
+                    const openIcon = document.querySelector('.open-icon');
+                    const closeIcon = document.querySelector('.close-icon');
+                    
+                    if (openIcon && closeIcon) {
+                        openIcon.style.display = 
+                            chatContainer.style.display === 'none' ? 'inline' : 'none';
+                        closeIcon.style.display = 
+                            chatContainer.style.display === 'none' ? 'none' : 'inline';
+                    }
+                }
+            };
+        }
+
+        // Enhanced initial greeting
+        setTimeout(() => {
+            addMessage("👋 Hello! I'm your FinGuide Assistant. I can help you understand your financial dashboard better.", false, [
+                'Tell me about the Overview',
+                'Explain my Credit Score',
+                'Show me my Transactions'
+            ]);
+            // Initialize button state
+            if (sendButton) {
+                sendButton.disabled = true;
+            }
+        }, 1000);
+    });
     </script>
 
 </body>
