@@ -33,4 +33,5 @@ build/
 staticfiles/
 media/
 
+* text=auto
 
