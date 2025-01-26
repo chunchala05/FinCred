@@ -128,7 +128,7 @@ class Transaction(models.Model):
     user = models.ForeignKey(User, verbose_name="USER", on_delete=models.CASCADE)
     savings_account = models.ForeignKey(SavingsAccount, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Savings Account")
     details = models.ForeignKey(Detail, on_delete=models.CASCADE, verbose_name="DETAILS")
-    time = models.DateTimeField(auto_now_add=True, verbose_name="CREATED")
+    time = models.DateTimeField(default=timezone.now, verbose_name="CREATED")
     last_updated = models.DateTimeField(auto_now=True, verbose_name="LAST UPDATED")
     amount = models.DecimalField(verbose_name="AMOUNT", max_digits=10, decimal_places=2, default=0)
     type = models.IntegerField(choices=categories, verbose_name="Type")
@@ -147,11 +147,11 @@ class Transaction(models.Model):
 
     @property
     def get_month(self):
-        return self.time.strftime("%m")
+        return timezone.localtime(self.time).strftime("%m")
 
     @property
     def get_year(self):
-        return self.time.strftime("%Y")
+        return timezone.localtime(self.time).strftime("%Y")
     
     def save(self, *args, **kwargs):
     # Ensure that user is set before saving
@@ -240,9 +240,9 @@ class Transaction(models.Model):
         #if self.details.user != self.user:
             #raise ValidationError(_('User does not own this Detail.'))
 
-        # Get the current month and year
-        current_month = datetime.now().strftime("%m")
-        current_year = datetime.now().strftime("%Y")
+        # Get the current month and year using timezone-aware datetime
+        current_month = timezone.now().strftime("%m")
+        current_year = timezone.now().strftime("%Y")
 
         # Compare the current month and year with those in self.details
         if (self.details.get_month != current_month) or (self.details.get_year != current_year):
@@ -337,20 +337,26 @@ class EMI(models.Model):
     )
 
     @property
-    def emi_amount(self):
-        if self.tenure_months == 0:
-            raise ValidationError("Tenure cannot be zero.")
-        monthly_rate = self.interest_rate / (12 * 100)
-        emi = (self.loan_amount * monthly_rate) / (1 - (1 + monthly_rate) ** -self.tenure_months)
+    def monthly_payment(self):
+        """Calculate monthly EMI payment"""
+        P = self.loan_amount  # Principal amount
+        R = self.interest_rate / (12 * 100)  # Monthly interest rate
+        N = self.tenure_months  # Total number of months
+        
+        # EMI calculation formula: P * R * (1 + R)^N / ((1 + R)^N - 1)
+        if R == 0:  # Handle zero interest case
+            return P / N
+        
+        emi = P * R * (1 + R)**N / ((1 + R)**N - 1)
         return round(emi, 2)
-    
+
     @property
     def total_payable(self):
-        return round(self.emi_amount * self.tenure_months, 2)
+        return round(self.monthly_payment * self.tenure_months, 2)
 
     @property
     def outstanding_balance(self):
-        total_payable = self.emi_amount * self.tenure_months
+        total_payable = self.monthly_payment * self.tenure_months
         return round(total_payable - self.paid_amount, 2)
 
     def make_payment(self, amount):

@@ -21,6 +21,7 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from datetime import datetime
 import yfinance as yf
+from .credit_score import CreditScoreCalculator
 
 
 # Create your views here.
@@ -96,13 +97,17 @@ def dashboard(request):
     Display the user's profile with summary of transactions, budgets, etc.
     """
     user = request.user
-    transactions = Transaction.objects.filter(user=user).order_by('-time')[:5]  # Latest 5 transactions
+    transactions = Transaction.objects.filter(user=user).order_by('-time')[:5]
     budgets = Budget.objects.filter(user=user)
     stock_portfolio = StockPortfolio.objects.filter(user=user)
     emi_loans = EMI.objects.filter(user=user)
     savings_account = SavingsAccount.objects.filter(user=user).first()
     detail = Detail.objects.filter(user=user).order_by('-date_created').first()
     
+    # Calculate credit score
+    credit_calculator = CreditScoreCalculator(user)
+    credit_score = credit_calculator.calculate_credit_score()
+    score_components = credit_calculator.get_score_components()
 
     context = {
         'user': user,
@@ -112,6 +117,8 @@ def dashboard(request):
         'emi_loans': emi_loans,
         'savings_account': savings_account,
         'detail': detail,
+        'credit_score': credit_score,
+        'score_components': score_components,
     }
     return render(request, 'dashboardnew.html', context)
 
