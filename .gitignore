@@ -1,0 +1,36 @@
+# Ignore Python virtual environments
+venv/
+__pycache__/
+
+# Ignore compiled Python files
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore environment/configuration files
+*.env
+*.env.*
+
+# Ignore logs
+*.log
+
+# Ignore Django migrations (optional)
+*/migrations/*
+
+# Ignore build files
+*.egg-info/
+dist/
+build/
+
+# Ignore static/media files (if applicable)
+staticfiles/
+media/
+
+
