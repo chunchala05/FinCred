@@ -46,7 +46,7 @@ table .btn-sm {
             <div class="bg-gray-800 p-4 rounded-lg">
                 <h2 class="text-lg font-medium">Balance</h2>
                 <p class="text-2xl font-bold">
-                    ₹ ₹ {{ savings_account.balance |default:0|floatformat:2 }}  
+                     ₹  {{ balance|default:0|floatformat:2 }}   
                 </p>
             </div>
             <div class="bg-gray-800 p-4 rounded-lg">
@@ -193,6 +193,9 @@ table .btn-sm {
                 }
             }
         });
+
+
+        
     </script>
 </body>
 </html>

@@ -206,8 +206,8 @@ class TransactionDeleteView(DeleteView):
 @login_required
 def transaction_overview(request):
     user = request.user
-    #transactions = Transaction.objects.filter(user=user).order_by('-time')
-    transactions = Transaction.objects.filter(user=user, is_deleted=False).order_by('-time')
+    transactions = Transaction.objects.filter(user=user).order_by('-time')
+    
 
 
     # Handle date filtering
@@ -234,8 +234,11 @@ def transaction_overview(request):
     total_expenditure = details.total_expenditure if details else 0.0
 
     # Prepare data for charts (daily expenses, etc.)
+    # Prepare data for charts (daily expenses, etc.)
     daily_expenses = transactions.values('time__date').annotate(total=Sum('amount')).order_by('time__date')
-    expense_distribution = transactions.values('type').annotate(total=Sum('amount'))
+
+    # Prepare expense distribution by category
+    expense_distribution = transactions.values('type').annotate(total=Sum('amount')).order_by('type')
 
     # Prepare data for charts
     dates = [entry['time__date'].strftime('%Y-%m-%d') for entry in daily_expenses]
@@ -243,8 +246,26 @@ def transaction_overview(request):
 
     # Get category names from the categories tuple defined in your models
     categories_dict = dict(categories)
-    category_names = [categories_dict.get(entry['type'], "Unknown") for entry in expense_distribution]
-    category_totals = [entry['total'] for entry in expense_distribution]
+    category_names = []
+    category_totals = []
+
+    # Aggregate category totals
+    for entry in expense_distribution:
+        category_name = categories_dict.get(entry['type'], "Unknown")
+        category_names.append(category_name)
+        category_totals.append(entry['total'])
+
+    # Remove duplicates while summing totals
+    unique_categories = {}
+    for name, total in zip(category_names, category_totals):
+        if name in unique_categories:
+            unique_categories[name] += total
+        else:
+            unique_categories[name] = total
+
+    # Prepare final lists for the chart
+    final_category_names = list(unique_categories.keys())
+    final_category_totals = list(unique_categories.values())
 
     # Pass everything to context
     context = {
@@ -252,14 +273,13 @@ def transaction_overview(request):
         'selected_date': selected_date if selected_date else '',
         'monthly_earnings': monthly_earnings,
         'monthly_expenses': monthly_expenses,
-        'balance': balance,  # Added balance
-        'total_expenditure': total_expenditure,  # Added total expenditure
+        'balance': balance,
+        'total_expenditure': total_expenditure,
         'dates': json.dumps(dates, cls=DjangoJSONEncoder),
         'expenses': json.dumps(expenses, cls=DjangoJSONEncoder),
-        'categories': json.dumps(category_names, cls=DjangoJSONEncoder),
-        'category_totals': json.dumps(category_totals, cls=DjangoJSONEncoder),
+        'categories': json.dumps(final_category_names, cls=DjangoJSONEncoder),
+        'category_totals': json.dumps(final_category_totals, cls=DjangoJSONEncoder),
     }
-
     return render(request, 'chart.html', context)
 
 
@@ -287,6 +307,27 @@ class BudgetDetailView(DetailView):
 
     def get_queryset(self):
         return Budget.objects.filter(user=self.request.user)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        budget = self.object  # The specific budget object
+
+        # Assuming you have a related model for budget items
+        budget_items = budget.budgetitem_set.all()  # Adjust this according to your model
+
+        # Prepare data for budget allocation chart
+        category_names = []
+        category_totals = []
+
+        for item in budget_items:
+            category_names.append(item.category.name)  # Assuming each item has a category with a name
+            category_totals.append(item.amount)  # Assuming each item has an amount
+
+        # Pass data to context
+        context['budget_category_names'] = json.dumps(category_names)
+        context['budget_category_totals'] = json.dumps(category_totals)
+
+        return context
 
 @method_decorator(login_required, name='dispatch')
 class BudgetCreateView(CreateView):
