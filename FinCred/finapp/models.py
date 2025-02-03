@@ -93,6 +93,7 @@ categories = [
     (7, 'Stock'),
 ]
 
+
 class SavingsAccount(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='savings_accounts')
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -153,12 +154,13 @@ class Transaction(models.Model):
     def get_year(self):
         return timezone.localtime(self.time).strftime("%Y")
     
+    
     def save(self, *args, **kwargs):
-    # Ensure that user is set before saving
+        # Ensure that user is set before saving
         if not self.user:
             raise ValueError("User is required for saving a transaction.")
 
-        # Proceed with the rest of the save logic
+        # Determine if the transaction is new
         is_new = self.pk is None
         previous_amount = 0
         previous_type = None
@@ -175,45 +177,65 @@ class Transaction(models.Model):
             else:
                 self.savings_account.withdraw(self.amount)
 
+        # Save transaction first
         super().save(*args, **kwargs)
 
-        # Update related detail instance
+        # Update Detail model
         detail = self.details
-
-        if is_new:
-            detail.total_transactions += 1
-            detail.total_expenditure += 0 if self.credit else self.amount
-            if not self.credit:
-                self._update_category_field(detail, self.type, self.amount)
+        if self.credit:
+            detail.income += self.amount - (previous_amount if previous_type == 7 else 0)
         else:
-            if previous_type is not None:
-                self._update_category_field(detail, previous_type, -previous_amount)
-            if not self.credit:
-                self._update_category_field(detail, self.type, self.amount - previous_amount)
+            detail.total_transactions += 1 if is_new else 0
+            detail.total_expenditure += self.amount - previous_amount
+            self._update_category_field(detail, previous_type, -previous_amount)
+            self._update_category_field(detail, self.type, self.amount)
 
         detail.savings = detail.income - detail.total_expenditure
         detail.save()
 
 
+    #def delete(self, *args, **kwargs):
+        # ... (Existing delete logic)
+        #detail = self.details
+        #detail.total_transactions -= 1
+        #detail.total_expenditure -= self.amount
+        #self._update_category_field(detail, self.type, -self.amount)
+        #detail.savings = detail.income - detail.total_expenditure
+        #detail.save()
+
+        #super().delete(*args, **kwargs)
+    
     def delete(self, *args, **kwargs):
-        """
-        Override delete method to update savings account and detail instance.
-        """
-        if self.savings_account:
-            if self.credit:
-                self.savings_account.withdraw(self.amount)  # Reverse deposit
-            else:
-                self.savings_account.add_deposit(self.amount)  # Reverse withdrawal
-
-        # Update related detail instance
         detail = self.details
-        detail.total_transactions -= 1
-        detail.total_expenditure -= 0 if self.credit else self.amount
-        self._update_category_field(detail, self.type, -self.amount)
-        detail.savings = detail.income - detail.total_expenditure
-        detail.save()
 
+        # If the transaction is an expense (credit=False), adjust expenditure and categories
+        if not self.credit:
+            detail.total_expenditure -= self.amount
+            detail.total_expenditure = round(detail.total_expenditure, 2)  # Keep precision
+
+            # Adjust the corresponding category field
+            category_map = {
+                1: 'housing',
+                2: 'food',
+                3: 'healthcare',
+                4: 'transportation',
+                5: 'recreation',
+                6: 'others',
+                7: 'stock'
+            }
+            category_field = category_map.get(self.type)
+            if category_field:
+                setattr(detail, category_field, getattr(detail, category_field) - self.amount)
+
+        # Always update the total number of transactions
+        detail.total_transactions = max(detail.total_transactions - 1, 0)
+
+        # Fix savings calculation
+        detail.savings = detail.income - detail.total_expenditure
+
+        detail.save()
         super().delete(*args, **kwargs)
+
 
     def _update_category_field(self, detail, category_type, amount):
         """
@@ -232,7 +254,25 @@ class Transaction(models.Model):
         if field_name:
             setattr(detail, field_name, getattr(detail, field_name) + amount)
 
-    def clean(self):
+    
+
+        
+    #def clean(self):
+    # Skip the user check if the user is not set
+        #if not self.user:
+            #return  # User is not set, so we can't validate against it
+
+        # Check if the details belong to the user
+        #if self.details.user != self.user:
+            #raise ValidationError(_('User  does not own this Detail.'))
+        
+
+        # REMOVE THE FOLLOWING BLOCK COMPLETELY!
+        # The time constraint is the source of your error.
+        # current_month = timezone.now().strftime("%m")
+        # current_year = timezone.now().strftime("%Y")
+        # if (self.details.get_month != current_month) or (self.details.get_year != current_year):
+        #     raise ValidationError(_('Time of transaction and details do not match.'))
         """
         Validate transaction data before saving.
         """
@@ -241,12 +281,12 @@ class Transaction(models.Model):
             #raise ValidationError(_('User does not own this Detail.'))
 
         # Get the current month and year using timezone-aware datetime
-        current_month = timezone.now().strftime("%m")
-        current_year = timezone.now().strftime("%Y")
+        #current_month = timezone.now().strftime("%m")
+        #current_year = timezone.now().strftime("%Y")#
 
         # Compare the current month and year with those in self.details
-        if (self.details.get_month != current_month) or (self.details.get_year != current_year):
-            raise ValidationError(_('Time of transaction and details do not match.'))
+        #if (self.details.get_month != current_month) or (self.details.get_year != current_year):
+            #raise ValidationError(_('Time of transaction and details do not match.'))
 
 
     def analyze_spending(self):

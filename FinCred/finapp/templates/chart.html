@@ -46,12 +46,16 @@ table .btn-sm {
             <div class="bg-gray-800 p-4 rounded-lg">
                 <h2 class="text-lg font-medium">Balance</h2>
                 <p class="text-2xl font-bold">
-                    ₹ {% if savings_account %} {{ savings_account.balance|floatformat:2 }} {% else %} 0.00 {% endif %}
+                    ₹ ₹ {{ savings_account.balance |default:0|floatformat:2 }}  
                 </p>
             </div>
             <div class="bg-gray-800 p-4 rounded-lg">
                 <h2 class="text-lg font-medium">Monthly Earnings</h2>
-                <p class="text-2xl font-bold text-green-400">+ ₹ {{ monthly_earnings|floatformat:2 }}</p>
+                <p class="text-2xl font-bold text-green-400"> {% if detail %}
+                    <p>Income: {{ detail.income }}</p>
+                {% else %}
+                    <p>No income data available.</p>
+                {% endif %} </p>
             </div>
             <div class="bg-gray-800 p-4 rounded-lg">
                 <h2 class="text-lg font-medium">Monthly Expenses</h2>

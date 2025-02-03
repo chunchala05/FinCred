@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 from .models import User, Transaction, Detail, Budget, EMI, SavingsAccount, StockPortfolio , categories
 import requests
-
+from django.utils.translation import gettext_lazy as _
 
 
 # ------------------- USER FORMS -------------------
@@ -47,19 +47,30 @@ class TransactionForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter description'}),
             'tags': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter tags (comma-separated)'}),
         }
+    
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        if user:
-            self.fields['details'].queryset = Detail.objects.filter(user=user)
+
+        if self.user:
+            self.fields['details'].queryset = Detail.objects.filter(user=self.user)
             self.fields['savings_account'] = forms.ModelChoiceField(
-                queryset=SavingsAccount.objects.filter(user=user),
+                queryset=SavingsAccount.objects.filter(user=self.user),
                 required=False,
                 help_text="Select a savings account (optional)."
             )
 
+    def clean(self):
+        cleaned_data = super().clean()
+        details = cleaned_data.get('details')
+        
+        if self.user and details and details.user != self.user:
+            #raise ValidationError(_("You don't have permission to use this detail."))
+            return cleaned_data
+
     def form_valid(self, form):
+        print(f"Request user: {self.request.user}")  # Check the user from the request
     # Set the user for the transaction instance
         form.instance.user = self.request.user
         print(f"User  set to: {form.instance.user}")  # Debugging line
@@ -71,7 +82,11 @@ class TransactionForm(forms.ModelForm):
         
         # Now validate the form and save the instance
         return super().form_valid(form)
-
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user  # Pass the user to the form
+        return kwargs
 
 
     def clean_amount(self):

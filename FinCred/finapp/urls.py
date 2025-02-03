@@ -3,7 +3,7 @@ from django.urls import path
 
 urlpatterns = [
        #path("", views.landing, name="landing"),
-       path("landing/", views.landing, name="landing"),
+       path("", views.landing, name="landing"),
        path('signup/', views.signup_view, name='signup_view'),
        path('logout/', views.logout_view, name='logout'),
        path('login/', views.login_view, name='login'),
@@ -34,7 +34,8 @@ urlpatterns = [
 
        # Add a new stock to the portfolio (mapped to add_to_portfolio)
        path('portfolio/add/', views.add_to_portfolio, name='add_to_portfolio'),
-       path('stock_visualizations/', views.get_visualizations, name='stock_visualizations'),
+       path('stock_visualization/', views.get_visualizations, name='get_visualizations'),
+
 
 
 

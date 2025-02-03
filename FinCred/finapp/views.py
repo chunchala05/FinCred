@@ -179,18 +179,36 @@ class TransactionCreateView(CreateView):
 @method_decorator(csrf_protect, name='dispatch')
 class TransactionDeleteView(DeleteView):
     model = Transaction
-    form_class = BudgetForm
     template_name = 'transactiondelete.html'
-    success_url = reverse_lazy('chart')
+    success_url = reverse_lazy('transaction_overview')
 
     def get_queryset(self):
         return Transaction.objects.filter(user=self.request.user)
+    
+    def delete(self, request, *args, **kwargs):
+        # Get the transaction to be deleted
+        self.object = self.get_object()
+        # Call the superclass delete method
+        response = super().delete(request, *args, **kwargs)
+
+        # Update the total expenditure in the Detail model
+        detail = Detail.objects.filter(user=request.user).first()
+        if detail:
+            # Recalculate total expenditure
+            total_expenditure = Transaction.objects.filter(user=request.user).exclude(type=7).aggregate(total=Sum('amount'))['total'] or 0
+            detail.total_expenditure = total_expenditure
+            detail.save()
+
+        return response    
+    
     
 
 @login_required
 def transaction_overview(request):
     user = request.user
-    transactions = Transaction.objects.filter(user=user).order_by('-time')
+    #transactions = Transaction.objects.filter(user=user).order_by('-time')
+    transactions = Transaction.objects.filter(user=user, is_deleted=False).order_by('-time')
+
 
     # Handle date filtering
     selected_date = request.GET.get('date', None)
@@ -205,6 +223,7 @@ def transaction_overview(request):
 
     # Calculate monthly expenses (excluding type 7 for 'income')
     monthly_expenses = transactions.filter(time__month=current_month).exclude(type=7).aggregate(total=Sum('amount'))['total'] or 0
+    
 
     # Get the balance from the user's savings account
     savings_account = SavingsAccount.objects.filter(user=user).first()
@@ -350,6 +369,22 @@ class StockPortfolioDetailView(DetailView):
 
     def get_queryset(self):
         return StockPortfolio.objects.filter(user=self.request.user)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        stock = self.get_object()
+
+        # Fetch historical data from Yahoo Finance for stock
+        stock_data = yf.Ticker(stock.ticker).history(period="1y")
+        historical_data = [(date.strftime('%Y-%m-%d'), price) for date, price in zip(stock_data.index, stock_data['Close'])]
+
+        # Fetch the future price prediction
+        future_price = stock.predict_price()  # Assuming you have a method for price prediction
+
+        context['historical_data'] = historical_data
+        context['future_price'] = future_price
+        return context
+
 
 # ------------------- FUNCTION-BASED VIEWS -------------------
 
@@ -370,9 +405,14 @@ def stock_detail(request, stock_id):
     stock = get_object_or_404(Stock, id=stock_id)
     future_price = stock.predict_price()  # Assuming you have a method for price prediction
 
+    # Fetch historical data from Yahoo Finance for stock
+    stock_data = yf.Ticker(stock.ticker).history(period="1y")
+    historical_data = [(date.strftime('%Y-%m-%d'), price) for date, price in zip(stock_data.index, stock_data['Close'])]
+
     return render(request, 'stock_detail.html', {
         'stock': stock,
-        'future_price': future_price
+        'future_price': future_price,
+        'historical_data': historical_data
     })
 
 
@@ -475,6 +515,14 @@ def get_visualizations(request):
             'price_change_percent': price_change_percent
         }
     })
+
+import yfinance as yf
+from datetime import datetime, timedelta
+from django.shortcuts import render
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+
+
 
 # ------------------- SAVINGS ACCOUNT VIEWS -------------------
 

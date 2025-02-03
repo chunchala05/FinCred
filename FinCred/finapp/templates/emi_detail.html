@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EMI</title>
 </head>
-<style>/* General Styles */
+<style>
+    /* General Styles */
+        /* General Styles */
     body {
         font-family: Arial, sans-serif;
         margin: 0;
@@ -13,78 +16,72 @@
         background-color: #f4f4f4;
         color: #333;
     }
+    
     .navbar {
         display: flex;
         position: sticky;
         align-items: center;
         justify-content: space-between;
-        top: 0px;
+        top: 0;
         background: #259ff1;
-        background-blend-mode: darken;
-        background-size: cover;
         color: white;
         padding: 10px 20px;
+        z-index: 1000; /* Ensure navbar is above other content */
     }
-
+    
     .nav-list {
         display: flex;
         list-style: none;
     }
-
+    
     .nav-list li {
         margin-right: 20px;
     }
-
+    
     .nav-list li:last-child {
         margin-right: 0;
     }
-
+    
     .nav-list li a {
         text-decoration: none;
         color: white;
         font-size: 18px;
         transition: color 0.3s ease-in-out;
     }
-
+    
     .nav-list li a:hover {
-        color: #003457;
-        /* Change the color on hover */
+        color: #003457; /* Change the color on hover */
     }
-
-    .rightNav {
-        text-align: right;
-    }
-
-
+    
     .btn {
         background-color: #003457;
-        color: #000;
+        color: #fff; /* Change text color to white for better contrast */
         border: none;
         padding: 8px 12px;
         border-radius: 5px;
         cursor: pointer;
         transition: background-color 0.3s ease-in-out;
     }
-
+    
     .btn:hover {
-        background-color: #000;
-        /* Change the background color on hover */
-        color: #003457;
+        background-color: #000; /* Change the background color on hover */
+        color: #fff; /* Ensure text remains readable */
     }
+    
     h1, h2, h3 {
         font-size: 24px;
         color: #333;
         margin-bottom: 20px;
-}
-    
+    }
     
     /* EMI List Styles */
     #emi-list-view {
-        margin: 20px;
+        margin: 20px auto; /* Center the content */
         padding: 20px;
         background-color: #fff;
         border-radius: 8px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        max-width: 800px; /* Set a max width for the content */
     }
     
     #emi-list-view table {
@@ -137,154 +134,115 @@
         text-decoration: underline;
     }
     
-    /* EMI Detail Styles */
-    #emi-detail-view {
-        margin-top: 20px;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 8px;
-    }
-    
-    #emi-detail-view h2 {
-        margin-bottom: 20px;
-    }
-    
-    #emi-detail-view p {
-        margin: 10px 0;
-    }
-    
-    /* Form Styles */
-    form {
-        margin-top: 20px;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    form label {
-        font-size: 16px;
-        margin-bottom: 5px;
-    }
-    
-    form input {
-        padding: 10px;
-        font-size: 16px;
-        margin-bottom: 15px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
-    
-    form button {
-        padding: 10px 20px;;
-        font-size: 16px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    
-    form button:hover {
-        background-color: #0056b3;
-    }
-    
-    /* Error Message Styles */
-    .form-errors p {
-        color: red;
-        font-size: 14px;
-    }
-    
-    form .form-errors {
-        margin-top: 10px;
-    }
-    
-    
-    </style>
+    /* EMI Detail View Styles */
+#emi-detail-view {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    max-width: 800px; /* Set a max width for the content */
+    margin: 20px auto; /* Center the content */
 
-{% block title %}<nav class="navbar">
-  <ul class="nav-list">
-      <li><a href="{% url 'dashboardnew' %}">Dashboard</a></li>
-      <li><a href="#about">Savings</a></li>
-      <li><a href="#services">Transactions</a></li>
-  </ul>
-</nav>{% endblock %}
+    
+}
 
-{% block content %}
-  <!-- EMI List View -->
-  <div id="emi-list-view">
+#emi-detail-view h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
+}
+
+#emi-detail-view p {
+    margin: 10px 0;
+    font-size: 16px;
+}
+
+#emi-detail-view strong {
+    color: #007bff; /* Highlight the labels */
+}
+
+/* Form Styles */
+form {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+form label {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+form input {
+    padding: 10px;
+    font-size: 16px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+form button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+form button:hover {
+    background-color: #0056b3;
+}
+
+/* Error Message Styles */
+.form-errors {
+    margin-top: 10px;
+    color: red;
+    font-size: 14px;
+}
+        
+        
+</style> {% block title %}<nav class="navbar">
+    <ul class="nav-list">
+        <li><a href="{% url 'dashboardnew' %}">Dashboard</a></li>
+        <li><a href="#about">Savings</a></li>
+        <li><a href="#services">Transactions</a></li>
+    </ul>
+</nav>{% endblock %} {% block content %}
+<!-- EMI List View -->
+<div id="emi-list-view">
     <h1>My EMI Loans</h1>
-    <div>
-        <a href="{% url 'emi_create' %}">
-        <button class="bg-green-500 px-4 py-2 rounded hover:bg-green-600">
-            + New Transaction
-        </button>
-        </a>
-    </div>
+    <div> <a href="{% url 'emi_create' %}"> <button class="bg-green-500 px-4 py-2 rounded hover:bg-green-600"> + New Loan Details </button> </a> </div>
     <table>
-      <thead>
-        <tr>
-          <th>Loan Amount</th>
-          <th>Interest Rate</th>
-          <th>Tenure (Months)</th>
-          <th>Outstanding Balance</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for emi in emi_loans %}
-        <tr>
-          <td>Rs{{ emi.loan_amount }}</td>
-          <td>{{ emi.interest_rate }}%</td>
-          <td>{{ emi.tenure_months }} months</td>
-          <td>Rs{{ emi.outstanding_balance }}</td>
-          <td>Rs{{ emi.total_payable }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    {% if is_paginated %}
-      <div class="pagination">
-        <span class="step-links">
-          {% if page_obj.has_previous %}
-            <a href="?page=1">&laquo; first</a>
-            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-          {% endif %}
-          <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.</span>
-          {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">next</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-          {% endif %}
-        </span>
-      </div>
-    {% endif %}
-  </div>
-
-  <!-- EMI Detail View - This will be dynamically shown for each EMI -->
-  {% for emi in emi_loans %}
-  <div id="emi-detail-view-{{ emi.pk }}" class="emi-detail-view">
+        <thead>
+            <tr>
+                <th>Loan Amount</th>
+                <th>Interest Rate</th>
+                <th>Tenure (Months)</th>
+                <th>Outstanding Balance</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody> {% for emi in emi_loans %} <tr>
+                <td>Rs{{ emi.loan_amount }}</td>
+                <td>{{ emi.interest_rate }}%</td>
+                <td>{{ emi.tenure_months }} months</td>
+                <td>Rs{{ emi.outstanding_balance }}</td>
+                <td>Rs{{ emi.total_payable }}</td>
+            </tr> {% endfor %} </tbody>
+    </table> {% if is_paginated %} <div class="pagination"> <span class="step-links"> {% if page_obj.has_previous %} <a href="?page=1">&laquo; first</a> <a href="?page={{ page_obj.previous_page_number }}">previous</a> {% endif %} <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.</span> {% if page_obj.has_next %} <a href="?page={{ page_obj.next_page_number }}">next</a> <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a> {% endif %} </span> </div> {% endif %}
+</div> <!-- EMI Detail View - This will be dynamically shown for each EMI --> {% for emi in emi_loans %} <div id="emi-detail-view-{{ emi.pk }}" class="emi-detail-view">
     <h2>EMI Loan Details</h2>
-    <p><strong>Loan Amount:</strong> ${{ emi.loan_amount }}</p>
+    <p><strong>Loan Amount:</strong> Rs{{ emi.loan_amount }}</p>
     <p><strong>Interest Rate:</strong> {{ emi.interest_rate }}%</p>
     <p><strong>Tenure:</strong> {{ emi.tenure_months }} months</p>
-    <p><strong>Paid Amount:</strong> ${{ emi.paid_amount }}</p>
+    <p><strong>Paid Amount:</strong> Rs{{ emi.paid_amount }}</p>
     <p><strong>Outstanding Balance:</strong> ${{ emi.outstanding_balance }}</p>
-
     <h3>Make a Payment</h3>
-    <form method="post" action="{% url 'emi_make_payment' emi.pk %}">
-      {% csrf_token %}
-      <label for="amount">Payment Amount ($):</label>
-      <input type="number" id="amount" name="amount" step="0.01" min="0" required>
-      <button type="submit">Pay</button>
-    </form>
+    <form method="post" action="{% url 'emi_make_payment' emi.pk %}"> {% csrf_token %} <label for="amount">Payment Amount ($):</label> <input type="number" id="amount" name="amount" step="0.01" min="0" required> <button type="submit">Pay</button> </form> {% if messages %} <div> {% for message in messages %} <p>{{ message }}</p> {% endfor %} </div> {% endif %}
+</div> {% endfor %} {% endblock %}
 
-    {% if messages %}
-      <div>
-        {% for message in messages %}
-          <p>{{ message }}</p>
-        {% endfor %}
-      </div>
-    {% endif %}
-  </div>
-  {% endfor %}
-{% endblock %}
 </html>

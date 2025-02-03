@@ -98,15 +98,15 @@ class CreditScoreCalculator:
             return 50  # Default middle value
         
         total_credit = savings_account.balance
-        used_credit = EMI.objects.filter(user=self.user).aggregate(
-            total=models.Sum('outstanding_balance')
-        )['total'] or 0
+
+        emis = EMI.objects.filter(user=self.user)
+        used_credit = sum(emi.outstanding_balance for emi in emis)
         
         if total_credit == 0:
             return 50
         
-        utilization = (used_credit / total_credit) * 100
-        return min(utilization, 100)
+        utilization = (used_credit / float(total_credit)) * 100
+        return min(utilization,100)
 
     def _calculate_account_age(self):
         """Calculate account age in months"""

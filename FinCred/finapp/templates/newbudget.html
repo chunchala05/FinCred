@@ -52,7 +52,7 @@
 
         <hr> </hr>
 
-        <p>{{ budgets }}</p>
+        
 
         <!-- Table to display budgets -->
         <!-- budget_list.html -->
@@ -63,7 +63,6 @@
                     <th>Category</th>
                     <th>Budget Limit</th>
                     <th>End Date</th>
-                    <th>Date Created</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -72,7 +71,6 @@
                     <tr>
                         <td>{{ budget.get_category_display }}</td>
                         <td>₹{{ budget.limit|floatformat:2 }}</td>
-                        <td>{{ budget.end_date|default:"No End Date" }}</td>
                         <td>{{ budget.date_created }}</td>
                         <td>
                             <form method="post" action="{% url 'budget_delete' budget.id %}" style="display:inline;">
