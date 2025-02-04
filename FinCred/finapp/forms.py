@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
-from .models import User, Transaction, Detail, Budget, EMI, SavingsAccount, StockPortfolio , categories
+from .models import User, Transaction, Detail, Budget, EMI, SavingsAccount, StockPortfolio, categories
 import requests
 from django.utils.translation import gettext_lazy as _
 
@@ -9,10 +9,11 @@ from django.utils.translation import gettext_lazy as _
 # ------------------- USER FORMS -------------------
 
 class CustomUserCreationForm(UserCreationForm):
-    
+
     class Meta:
         model = User
-        fields = ['username','email','first_name','last_name','password1','password2']
+        fields = ['username', 'email', 'first_name',
+                  'last_name', 'password1', 'password2']
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -25,8 +26,10 @@ class LoginForm(AuthenticationForm):
     """
     Form for user login.
     """
-    username = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}))
+    username = forms.CharField(widget=forms.TextInput(
+        attrs={'class': 'form-control', 'placeholder': 'Username'}))
+    password = forms.CharField(widget=forms.PasswordInput(
+        attrs={'class': 'form-control', 'placeholder': 'Password'}))
 
 
 # ------------------- TRANSACTION FORMS -------------------
@@ -38,7 +41,7 @@ class TransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
         fields = ['details', 'amount', 'type', 'credit', 'description', 'tags']
-        
+
         widgets = {
             'details': forms.Select(attrs={'class': 'form-select'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Enter amount'}),
@@ -47,14 +50,14 @@ class TransactionForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter description'}),
             'tags': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter tags (comma-separated)'}),
         }
-    
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
         if self.user:
-            self.fields['details'].queryset = Detail.objects.filter(user=self.user)
+            self.fields['details'].queryset = Detail.objects.filter(
+                user=self.user)
             self.fields['savings_account'] = forms.ModelChoiceField(
                 queryset=SavingsAccount.objects.filter(user=self.user),
                 required=False,
@@ -64,37 +67,37 @@ class TransactionForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         details = cleaned_data.get('details')
-        
+
         if self.user and details and details.user != self.user:
-            #raise ValidationError(_("You don't have permission to use this detail."))
+            # raise ValidationError(_("You don't have permission to use this detail."))
             return cleaned_data
 
     def form_valid(self, form):
-        print(f"Request user: {self.request.user}")  # Check the user from the request
+        # Check the user from the request
+        print(f"Request user: {self.request.user}")
     # Set the user for the transaction instance
         form.instance.user = self.request.user
         print(f"User  set to: {form.instance.user}")  # Debugging line
-        
+
         # Ensure a savings account is set if available
-        savings_account = SavingsAccount.objects.filter(user=self.request.user).first()
+        savings_account = SavingsAccount.objects.filter(
+            user=self.request.user).first()
         if savings_account:
             form.instance.savings_account = savings_account
-        
+
         # Now validate the form and save the instance
         return super().form_valid(form)
-    
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user  # Pass the user to the form
         return kwargs
-
 
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')
         if amount <= 0:
             raise ValidationError("Amount must be greater than zero.")
         return amount
-
 
 
 # ------------------- DETAIL FORMS -------------------
@@ -155,12 +158,14 @@ class EMICreateForm(forms.ModelForm):
     """
     class Meta:
         model = EMI
-        fields = ['loan_amount', 'interest_rate', 'tenure_months', 'start_date', 'paid_amount','linked_savings_account']
+        fields = ['loan_amount', 'interest_rate', 'tenure_months',
+                  'start_date', 'paid_amount', 'linked_savings_account']
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
-        self.fields['linked_savings_account'].queryset = SavingsAccount.objects.filter(user=user)
+        self.fields['linked_savings_account'].queryset = SavingsAccount.objects.filter(
+            user=user)
 
     def clean_interest_rate(self):
         interest_rate = self.cleaned_data.get('interest_rate')
@@ -174,11 +179,13 @@ class EMICreateForm(forms.ModelForm):
             raise forms.ValidationError("Tenure must be at least one month.")
         return tenure_months
 
+
 class EMIPaymentForm(forms.Form):
     """
     Form for making EMI payments.
     """
-    amount = forms.DecimalField(min_value=0.01, max_digits=10, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    amount = forms.DecimalField(min_value=0.01, max_digits=10, decimal_places=2,
+                                widget=forms.NumberInput(attrs={'class': 'form-control'}))
 
     def __init__(self, emi, *args, **kwargs):
         self.emi = emi
@@ -187,7 +194,8 @@ class EMIPaymentForm(forms.Form):
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')
         if amount > self.emi.outstanding_balance:
-            raise ValidationError(f"Payment exceeds the outstanding balance of ${self.emi.outstanding_balance}.")
+            raise ValidationError(f"Payment exceeds the outstanding balance of ${
+                                  self.emi.outstanding_balance}.")
         return amount
 
 
@@ -208,21 +216,23 @@ class SavingsAccountForm(forms.ModelForm):
         balance = self.cleaned_data.get('balance')
         if balance < 0:
             raise ValidationError("Balance cannot be negative.")
-        return balance 
+        return balance
 
 
 class SavingsDepositForm(forms.Form):
     """
     Form for depositing money into a savings account.
     """
-    amount = forms.DecimalField(min_value=0.01, max_digits=10, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    amount = forms.DecimalField(min_value=0.01, max_digits=10, decimal_places=2,
+                                widget=forms.NumberInput(attrs={'class': 'form-control'}))
 
 
 class SavingsWithdrawForm(forms.Form):
     """
     Form for withdrawing money from a savings account.
     """
-    amount = forms.DecimalField(min_value=0.01, max_digits=10, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    amount = forms.DecimalField(min_value=0.01, max_digits=10, decimal_places=2,
+                                widget=forms.NumberInput(attrs={'class': 'form-control'}))
 
     def __init__(self, savings_account, *args, **kwargs):
         self.savings_account = savings_account
@@ -231,7 +241,8 @@ class SavingsWithdrawForm(forms.Form):
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')
         if amount > self.savings_account.balance:
-            raise ValidationError(f"Insufficient funds. Available balance: ${self.savings_account.balance}.")
+            raise ValidationError(f"Insufficient funds. Available balance: ${
+                                  self.savings_account.balance}.")
         return amount
 
 
@@ -240,6 +251,6 @@ class StockPortfolioForm(forms.ModelForm):
         model = StockPortfolio
         fields = ['stock', 'shares', 'purchase_price']
 
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.fields['purchase_price'].widget.attrs['readonly'] = True
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['purchase_price'].widget.attrs['readonly'] = True

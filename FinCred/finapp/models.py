@@ -16,8 +16,10 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, null=False, blank=False)
     first_name = models.CharField(max_length=30, null=False, blank=False)
     last_name = models.CharField(max_length=30, null=False, blank=False)
-    groups = models.ManyToManyField(Group, related_name='finapp_user_set', blank=True, verbose_name='groups')
-    user_permissions = models.ManyToManyField(Permission, related_name='finapp_user_permissions_set', blank=True, verbose_name='user permissions')
+    groups = models.ManyToManyField(
+        Group, related_name='finapp_user_set', blank=True, verbose_name='groups')
+    user_permissions = models.ManyToManyField(
+        Permission, related_name='finapp_user_permissions_set', blank=True, verbose_name='user permissions')
 
     def total_transactions(self):
         """
@@ -36,23 +38,37 @@ class Detail(models.Model):
     """
     Model for storing Monthly Statements of Users
     """
-    user = models.ForeignKey(User, verbose_name="USER", on_delete=models.CASCADE)
-    income = models.DecimalField(verbose_name="INCOME", max_digits=10, decimal_places=2, default=0)
-    savings = models.DecimalField(verbose_name="SAVINGS", max_digits=10, decimal_places=2, default=0)
-    total_expenditure = models.DecimalField(verbose_name="TOTAL EXPENDITURE", max_digits=10, decimal_places=2, default=0)
-    housing = models.DecimalField(verbose_name="HOUSING", max_digits=10, decimal_places=2, default=0)
-    food = models.DecimalField(verbose_name="FOOD", max_digits=10, decimal_places=2, default=0)
-    healthcare = models.DecimalField(verbose_name="HEALTHCARE", max_digits=10, decimal_places=2, default=0)
-    transportation = models.DecimalField(verbose_name="TRANSPORTATION", max_digits=10, decimal_places=2, default=0)
-    recreation = models.DecimalField(verbose_name="RECREATION", max_digits=10, decimal_places=2, default=0)
-    others = models.DecimalField(verbose_name="OTHERS", max_digits=10, decimal_places=2, default=0)
-    stock = models.DecimalField(verbose_name="STOCK", max_digits=10, decimal_places=2, default=0)
-    total_transactions = models.IntegerField(verbose_name="TOTAL TRANSACTIONS", default=0)
-    date_created = models.DateField(auto_now_add=True, null=True, verbose_name="DATE CREATED")
+    user = models.ForeignKey(User, verbose_name="USER",
+                             on_delete=models.CASCADE)
+    income = models.DecimalField(
+        verbose_name="INCOME", max_digits=10, decimal_places=2, default=0)
+    savings = models.DecimalField(
+        verbose_name="SAVINGS", max_digits=10, decimal_places=2, default=0)
+    total_expenditure = models.DecimalField(
+        verbose_name="TOTAL EXPENDITURE", max_digits=10, decimal_places=2, default=0)
+    housing = models.DecimalField(
+        verbose_name="HOUSING", max_digits=10, decimal_places=2, default=0)
+    food = models.DecimalField(
+        verbose_name="FOOD", max_digits=10, decimal_places=2, default=0)
+    healthcare = models.DecimalField(
+        verbose_name="HEALTHCARE", max_digits=10, decimal_places=2, default=0)
+    transportation = models.DecimalField(
+        verbose_name="TRANSPORTATION", max_digits=10, decimal_places=2, default=0)
+    recreation = models.DecimalField(
+        verbose_name="RECREATION", max_digits=10, decimal_places=2, default=0)
+    others = models.DecimalField(
+        verbose_name="OTHERS", max_digits=10, decimal_places=2, default=0)
+    stock = models.DecimalField(
+        verbose_name="STOCK", max_digits=10, decimal_places=2, default=0)
+    total_transactions = models.IntegerField(
+        verbose_name="TOTAL TRANSACTIONS", default=0)
+    date_created = models.DateField(
+        auto_now_add=True, null=True, verbose_name="DATE CREATED")
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user', 'date_created'], name='unique_user_monthly_detail')
+            models.UniqueConstraint(
+                fields=['user', 'date_created'], name='unique_user_monthly_detail')
         ]
 
     def __str__(self):
@@ -72,8 +88,10 @@ class Detail(models.Model):
         """
         total_income = self.income
         total_expenditure = self.total_expenditure
-        savings_rate = (self.savings / total_income) * 100 if total_income > 0 else 0
-        expenditure_rate = (total_expenditure / total_income) * 100 if total_income > 0 else 0
+        savings_rate = (self.savings / total_income) * \
+            100 if total_income > 0 else 0
+        expenditure_rate = (total_expenditure / total_income) * \
+            100 if total_income > 0 else 0
 
         return {
             'savings_rate': savings_rate,
@@ -95,15 +113,16 @@ categories = [
 
 
 class SavingsAccount(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='savings_accounts')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='savings_accounts')
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     goals = models.JSONField(default=list)
-    date_created = models.DateField(auto_now_add=True, null=True, verbose_name="DATE CREATED")
+    date_created = models.DateField(
+        auto_now_add=True, null=True, verbose_name="DATE CREATED")
 
     def __str__(self):
         return f"Savings account of {self.user.username} - Balance: {self.balance}"
 
-       
     def add_deposit(self, amount):
         if amount <= 0:
             raise ValidationError("Deposit amount must be positive.")
@@ -114,7 +133,8 @@ class SavingsAccount(models.Model):
 
     def withdraw(self, amount):
         if self.balance < amount:
-            raise ValidationError(f"Insufficient funds: You have only {self.balance} available.")
+            raise ValidationError(f"Insufficient funds: You have only {
+                                  self.balance} available.")
         amount = Decimal(amount) if not isinstance(amount, Decimal) else amount
         self.balance -= amount
         self.save()
@@ -126,19 +146,24 @@ class SavingsAccount(models.Model):
 
 class Transaction(models.Model):
 
-    user = models.ForeignKey(User, verbose_name="USER", on_delete=models.CASCADE)
-    savings_account = models.ForeignKey(SavingsAccount, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Savings Account")
-    details = models.ForeignKey(Detail, on_delete=models.CASCADE, verbose_name="DETAILS")
+    user = models.ForeignKey(User, verbose_name="USER",
+                             on_delete=models.CASCADE)
+    savings_account = models.ForeignKey(
+        SavingsAccount, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Savings Account")
+    details = models.ForeignKey(
+        Detail, on_delete=models.CASCADE, verbose_name="DETAILS")
     time = models.DateTimeField(default=timezone.now, verbose_name="CREATED")
-    last_updated = models.DateTimeField(auto_now=True, verbose_name="LAST UPDATED")
-    amount = models.DecimalField(verbose_name="AMOUNT", max_digits=10, decimal_places=2, default=0)
+    last_updated = models.DateTimeField(
+        auto_now=True, verbose_name="LAST UPDATED")
+    amount = models.DecimalField(
+        verbose_name="AMOUNT", max_digits=10, decimal_places=2, default=0)
     type = models.IntegerField(choices=categories, verbose_name="Type")
     credit = models.BooleanField(verbose_name="CREDIT", default=False)
-    description = models.TextField(blank=True, default="Description", verbose_name="DESCRIPTION")
+    description = models.TextField(
+        blank=True, default="Description", verbose_name="DESCRIPTION")
     tags = models.JSONField(default=list, blank=True, verbose_name="TAGS")
-    date_created = models.DateField(auto_now_add=True, null=True, verbose_name="DATE CREATED")
-   
-    
+    date_created = models.DateField(
+        auto_now_add=True, null=True, verbose_name="DATE CREATED")
 
     def __str__(self):
         return f"{self.user} / {self.time} / {self.amount} / {self.get_category()} / {self.description} / {self.credit}"
@@ -153,8 +178,7 @@ class Transaction(models.Model):
     @property
     def get_year(self):
         return timezone.localtime(self.time).strftime("%Y")
-    
-    
+
     def save(self, *args, **kwargs):
         # Ensure that user is set before saving
         if not self.user:
@@ -183,35 +207,37 @@ class Transaction(models.Model):
         # Update Detail model
         detail = self.details
         if self.credit:
-            detail.income += self.amount - (previous_amount if previous_type == 7 else 0)
+            detail.income += self.amount - \
+                (previous_amount if previous_type == 7 else 0)
         else:
             detail.total_transactions += 1 if is_new else 0
             detail.total_expenditure += self.amount - previous_amount
-            self._update_category_field(detail, previous_type, -previous_amount)
+            self._update_category_field(
+                detail, previous_type, -previous_amount)
             self._update_category_field(detail, self.type, self.amount)
 
         detail.savings = detail.income - detail.total_expenditure
         detail.save()
 
-
-    #def delete(self, *args, **kwargs):
+    # def delete(self, *args, **kwargs):
         # ... (Existing delete logic)
-        #detail = self.details
-        #detail.total_transactions -= 1
-        #detail.total_expenditure -= self.amount
-        #self._update_category_field(detail, self.type, -self.amount)
-        #detail.savings = detail.income - detail.total_expenditure
-        #detail.save()
+        # detail = self.details
+        # detail.total_transactions -= 1
+        # detail.total_expenditure -= self.amount
+        # self._update_category_field(detail, self.type, -self.amount)
+        # detail.savings = detail.income - detail.total_expenditure
+        # detail.save()
 
-        #super().delete(*args, **kwargs)
-    
+        # super().delete(*args, **kwargs)
+
     def delete(self, *args, **kwargs):
         detail = self.details
 
         # If the transaction is an expense (credit=False), adjust expenditure and categories
         if not self.credit:
             detail.total_expenditure -= self.amount
-            detail.total_expenditure = round(detail.total_expenditure, 2)  # Keep precision
+            detail.total_expenditure = round(
+                detail.total_expenditure, 2)  # Keep precision
 
             # Adjust the corresponding category field
             category_map = {
@@ -225,7 +251,8 @@ class Transaction(models.Model):
             }
             category_field = category_map.get(self.type)
             if category_field:
-                setattr(detail, category_field, getattr(detail, category_field) - self.amount)
+                setattr(detail, category_field, getattr(
+                    detail, category_field) - self.amount)
 
         # Always update the total number of transactions
         detail.total_transactions = max(detail.total_transactions - 1, 0)
@@ -235,7 +262,6 @@ class Transaction(models.Model):
 
         detail.save()
         super().delete(*args, **kwargs)
-
 
     def _update_category_field(self, detail, category_type, amount):
         """
@@ -254,18 +280,14 @@ class Transaction(models.Model):
         if field_name:
             setattr(detail, field_name, getattr(detail, field_name) + amount)
 
-    
-
-        
-    #def clean(self):
+    # def clean(self):
     # Skip the user check if the user is not set
-        #if not self.user:
-            #return  # User is not set, so we can't validate against it
+        # if not self.user:
+            # return  # User is not set, so we can't validate against it
 
         # Check if the details belong to the user
-        #if self.details.user != self.user:
-            #raise ValidationError(_('User  does not own this Detail.'))
-        
+        # if self.details.user != self.user:
+            # raise ValidationError(_('User  does not own this Detail.'))
 
         # REMOVE THE FOLLOWING BLOCK COMPLETELY!
         # The time constraint is the source of your error.
@@ -277,23 +299,23 @@ class Transaction(models.Model):
         Validate transaction data before saving.
         """
         # Check if the user owns the details
-        #if self.details.user != self.user:
-            #raise ValidationError(_('User does not own this Detail.'))
+        # if self.details.user != self.user:
+        # raise ValidationError(_('User does not own this Detail.'))
 
         # Get the current month and year using timezone-aware datetime
-        #current_month = timezone.now().strftime("%m")
-        #current_year = timezone.now().strftime("%Y")#
+        # current_month = timezone.now().strftime("%m")
+        # current_year = timezone.now().strftime("%Y")#
 
         # Compare the current month and year with those in self.details
-        #if (self.details.get_month != current_month) or (self.details.get_year != current_year):
-            #raise ValidationError(_('Time of transaction and details do not match.'))
-
+        # if (self.details.get_month != current_month) or (self.details.get_year != current_year):
+        # raise ValidationError(_('Time of transaction and details do not match.'))
 
     def analyze_spending(self):
         """
         Analyze spending habits based on transaction data.
         """
-        total_spent = Transaction.objects.filter(user=self.user).aggregate(total=Sum('amount'))['total'] or 0
+        total_spent = Transaction.objects.filter(
+            user=self.user).aggregate(total=Sum('amount'))['total'] or 0
         return {
             'total_spent': total_spent,
             'average_spent': total_spent / self.details.total_transactions if self.details.total_transactions > 0 else 0,
@@ -307,14 +329,17 @@ class Transaction(models.Model):
         spending_breakdown = {category[1]: 0 for category in categories}
         transactions = Transaction.objects.filter(user=self.user)
         for transaction in transactions:
-            spending_breakdown[transaction.get_category()] += transaction.amount
+            spending_breakdown[transaction.get_category()
+                               ] += transaction.amount
         return spending_breakdown
 
 
 class Budget(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budgets')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='budgets')
     category = models.IntegerField(choices=categories, verbose_name="Category")
-    limit = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Budget Limit")
+    limit = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name="Budget Limit")
     date_created = models.DateField(auto_now_add=True)
     end_date = models.DateField(null=True, blank=True)
 
@@ -349,7 +374,8 @@ class Stock(models.Model):
 
 
 class StockPortfolio(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stock_portfolio')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='stock_portfolio')
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     shares = models.FloatField(default=0)
     purchase_price = models.FloatField()
@@ -359,6 +385,9 @@ class StockPortfolio(models.Model):
         return self.shares * self.stock.current_price
 
     def clean(self):
+        # Check if purchase_price is None or negative
+        if self.purchase_price is None:
+            raise ValidationError("Purchase price cannot be None.")
         if self.purchase_price < 0:
             raise ValidationError("Purchase price cannot be negative.")
 
@@ -367,14 +396,15 @@ class StockPortfolio(models.Model):
 
 
 class EMI(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='loans')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='loans')
     loan_amount = models.FloatField(verbose_name="Loan Amount")
     interest_rate = models.FloatField(verbose_name="Interest Rate (%)")
     tenure_months = models.IntegerField(verbose_name="Tenure (in months)")
     start_date = models.DateField(verbose_name="Start Date")
     paid_amount = models.FloatField(default=0, verbose_name="Amount Paid")
     linked_savings_account = models.ForeignKey(SavingsAccount, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Linked Savings Account"
-    )
+                                               )
 
     @property
     def monthly_payment(self):
@@ -382,11 +412,11 @@ class EMI(models.Model):
         P = self.loan_amount  # Principal amount
         R = self.interest_rate / (12 * 100)  # Monthly interest rate
         N = self.tenure_months  # Total number of months
-        
+
         # EMI calculation formula: P * R * (1 + R)^N / ((1 + R)^N - 1)
         if R == 0:  # Handle zero interest case
             return P / N
-        
+
         emi = P * R * (1 + R)**N / ((1 + R)**N - 1)
         return round(emi, 2)
 
@@ -407,15 +437,12 @@ class EMI(models.Model):
 
         if self.linked_savings_account:
             if self.linked_savings_account.balance < amount:
-                raise ValidationError("Insufficient funds in the linked savings account.")
+                raise ValidationError(
+                    "Insufficient funds in the linked savings account.")
             self.linked_savings_account.withdraw(amount)
 
         self.paid_amount += amount
         self.save()
 
-
     def __str__(self):
         return f"Loan for {self.user.username} - Outstanding: {self.outstanding_balance}"
-
-
-

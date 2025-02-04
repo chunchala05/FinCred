@@ -82,15 +82,14 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'fincred_db',
         'USER': 'postgres',
-        'PASSWORD': 'Chunchala',
+        'PASSWORD': '1475963',
         'HOST': 'localhost',  # Or the database host for remote services like Heroku or RDS
         'PORT': '5432',  # Default port for PostgreSQL
     }
 }
-    
+
 
 AUTH_USER_MODEL = 'finapp.User'
-
 
 
 # Password validation
