@@ -1,0 +1,77 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add to Portfolio</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'stock_add_to_portfolio.css' %}">
+    <script>
+        function updatePurchasePrice() {
+            // Get selected stock price
+            const stockSelect = document.getElementById('id_stock');
+            const selectedOption = stockSelect.options[stockSelect.selectedIndex];
+            const currentPrice = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+
+            // Get number of shares
+            const sharesInput = document.getElementById('id_shares');
+            const numberOfShares = parseFloat(sharesInput.value) || 0;
+
+            // Calculate purchase price
+            const purchasePriceField = document.getElementById('id_purchase_price');
+            const totalPurchasePrice = (currentPrice * numberOfShares).toFixed(2);
+
+            // Update purchase price field
+            purchasePriceField.value = totalPurchasePrice;
+        }
+
+        function updateCurrentPriceDisplay() {
+            const sharesInput = document.getElementById('id_shares');
+            const numberOfShares = parseFloat(sharesInput.value) || 0;
+            
+            const stockSelect = document.getElementById('id_stock');
+            const selectedOption = stockSelect.options[stockSelect.selectedIndex];
+            const currentPrice = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+
+            // Calculate and display current total price
+            const totalCurrentPriceDisplay = document.getElementById('current-price-display');
+            totalCurrentPriceDisplay.textContent = `Current Price for ${selectedOption.text}: ₹${(currentPrice * numberOfShares).toFixed(2)}`;
+        }
+    </script>
+</head>
+<body>
+
+<h2>Add Stock to Portfolio</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <label for="id_stock">Select Stock:</label>
+    <select id="id_stock" name="stock" onchange="updatePurchasePrice(); updateCurrentPriceDisplay();">
+        <option value="">-- Select a Stock --</option>
+        {% for stock in stocks %}
+            <option value="{{ stock.id }}" data-price="{{ stock.current_price }}">{{ stock.name }} ({{ stock.ticker }})</option>
+        {% endfor %}
+    </select>    
+
+    <label for="id_shares">Number of Shares:</label>
+    <input type="number" id="id_shares" name="shares" min="1" value="1" onchange="updatePurchasePrice(); updateCurrentPriceDisplay();">
+
+    <label for="id_purchase_price">Purchase Price:</label>
+    <input type="text" id="id_purchase_price" name="purchase_price" value="{{ form.purchase_price.value }}" readonly>
+
+    {% if form.non_field_errors %}
+        <div class="error">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <p id="current-price-display"></p>
+
+    <button type="submit">Add to Portfolio</button>
+</form>
+
+<a href="{% url 'stock_portfolio' %}">To Portfolio</a><br><br>
+
+<a href="{% url 'stock_list' %}">To Stock List</a>
+</body>
+</html>

@@ -1,25 +1,53 @@
+{% load static %}
 
-{% block content %}
-<h2>Stock Details: {{ stock.company_name }}</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Stock Portfolio</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'stock_portfolio.css' %}">
+</head>
+<body>
 
-<p><strong>Ticker:</strong> {{ stock.ticker }}</p>
-<p><strong>Current Price:</strong> ${{ stock.current_price }}</p>
+<h2>Your Stock Portfolio</h2>
 
-<h3>Historical Data</h3>
-<ul>
-  {% for date, price in stock.historical_data %}
-    <li>{{ date }}: ${{ price }}</li>
-  {% empty %}
-    <li>No historical data available.</li>
-  {% endfor %}
-</ul>
+<table>
+    <thead>
+        <tr>
+            <th>Stock</th>
+            <th>Current Price</th>
+            <th>Purchase Price</th>
+            <th>Shares</th>
+            <th>Total Invested</th>
+            <th>Current Value</th>
+            <th>Gain/Loss</th>
+            <th>Actions</th> <!-- New Actions Column -->
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in portfolio_data %}
+        <tr>
+            <td><a href="{% url 'stock_detail' item.stock.id %}">{{ item.stock.company_name }} ({{ item.stock.ticker }})</a></td>
+            <td>₹{{ item.current_price }}</td>
+            <td>₹{{ item.purchase_price }}</td>
+            <td>{{ item.shares }}</td>
+            <td>₹{{ item.invested_amount|floatformat:2 }}</td>
+            <td>₹{{ item.current_value|floatformat:2 }}</td>
+            <td class="{% if item.gain_loss >= 0 %}gain{% else %}loss{% endif %}">
+                ₹{{ item.gain_loss|floatformat:2 }}
+            </td>       
+            <td><a href="{% url 'delete_stock' item.portfolio_id %}">Delete Shares</a></td> <!-- Link to delete -->
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
-<a href="{% url 'stock_detail' stock.id %}" class="btn btn-secondary">Predict Future Price</a>
-<a href="{% url 'stock_portfolio' %}" class="btn btn-primary">Back to Portfolio</a>
+<h3>Total Invested: ₹{{ total_invested|floatformat:2 }}</h3>
+<h3>Total Current Value: ₹{{ total_current_value|floatformat:2 }}</h3>
+<h3>Overall Gain/Loss: ₹{{ overall_gain_loss|floatformat:2 }}</h3>
 
-<h2>Future Price Prediction for {{ stock.company_name }}</h2>
+<a href="{% url 'add_to_portfolio' %}">Add New Stock</a>
 
-<p>Current Price: ${{ stock.current_price }}</p>
-<p>Predicted Future Price: ${{ future_price }}</p>
-
-{% endblock %}
+</body>
+</html>

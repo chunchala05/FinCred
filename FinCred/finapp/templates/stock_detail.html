@@ -1,24 +1,157 @@
-{% block content %}
-  <h2>Stock Details: {{ stock.company_name }}</h2>
+{% load static %}
 
-  <p><strong>Ticker:</strong> {{ stock.ticker }}</p>
-  <p><strong>Current Price:</strong> ${{ stock.current_price }}</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ stock.company_name }} - Stock Details</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fa;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
 
-  <h3>Historical Data</h3>
-  <ul>
-    {% for date, price in stock.historical_data %}
-      <li>{{ date }}: ${{ price }}</li>
-    {% empty %}
-      <li>No historical data available.</li>
-    {% endfor %}
-  </ul>
+        h2 {
+            color: #2c3e50;
+        }
 
-  <a href="{% url 'stock_detail' stock.id %}" class="btn btn-secondary">Predict Future Price</a>
-  <a href="{% url 'stock_portfolio' %}" class="btn btn-primary">Back to Portfolio</a>
+        .chart-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+        }
 
-  <h2>Future Price Prediction for {{ stock.company_name }}</h2>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
 
-  <p>Current Price: ${{ stock.current_price }}</p>
-  <p>Predicted Future Price: ${{ future_price }}</p>
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
 
-{% endblock %}
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .back-link:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+
+<h2>{{ stock.company_name }} ({{ stock.ticker }})</h2>
+<p>Current Price: ₹{{ stock.current_price|floatformat:2 }}</p>
+
+<!-- Candlestick Chart -->
+<div class="chart-container">
+    <h3>Candlestick Chart</h3>
+    <div id="candlestick-chart"></div>
+</div>
+
+<!-- Closing Price Trend Chart -->
+<div class="chart-container">
+    <h3>Closing Price Trend</h3>
+    <div id="line-chart"></div>
+</div>
+
+<!-- Historical Data Table -->
+<h3>Last 30 Days Historical Data</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Open</th>
+            <th>Close</th>
+            <th>High</th>
+            <th>Low</th>
+            <th>Volume</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for record in historical_data %}
+        <tr>
+            <td>{{ record.date }}</td>
+            <td>₹{{ record.open|floatformat:2 }}</td>
+            <td>₹{{ record.close|floatformat:2 }}</td>
+            <td>₹{{ record.high|floatformat:2 }}</td>
+            <td>₹{{ record.low|floatformat:2 }}</td>
+            <td>{{ record.volume }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a class="back-link" href="{% url 'stock_portfolio' %}">Back to Portfolio</a>
+
+<script>
+    // Parse JSON data from Django
+    let historicalData = JSON.parse('{{ historical_json|escapejs }}');
+
+    // Extract data for charts
+    let dates = historicalData.map(d => d.date);
+    let openPrices = historicalData.map(d => d.open);
+    let closePrices = historicalData.map(d => d.close);
+    let highPrices = historicalData.map(d => d.high);
+    let lowPrices = historicalData.map(d => d.low);
+    let volumes = historicalData.map(d => d.volume);
+
+    // Candlestick Chart
+    let candlestickTrace = {
+        x: dates,
+        open: openPrices,
+        close: closePrices,
+        high: highPrices,
+        low: lowPrices,
+        type: 'candlestick'
+    };
+
+    Plotly.newPlot('candlestick-chart', [candlestickTrace], {
+        title: '{{ stock.company_name }} - Candlestick Chart',
+        xaxis: { title: 'Date' },
+        yaxis: { title: 'Price (₹)' }
+    });
+
+    // Line Chart for Closing Price Trend
+    let lineTrace = {
+        x: dates,
+        y: closePrices,
+        mode: 'lines',
+        name: 'Closing Price',
+        line: { color: '#1f77b4' }
+    };
+
+    Plotly.newPlot('line-chart', [lineTrace], {
+        title: '{{ stock.company_name }} - Closing Price Trend',
+        xaxis: { title: 'Date' },
+        yaxis: { title: 'Price (₹)' }
+    });
+
+</script>
+
+</body>
+</html>

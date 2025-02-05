@@ -1,3 +1,7 @@
+<head>
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'stock_list.css' %}">
+</head>
 {% block content %}
   <h2>Select a Stock from Nifty 50</h2>
   
@@ -14,10 +18,10 @@
     <tbody>
       {% for stock in nifty_50_stocks %}
         <tr>
-          <td>{{ stock.name }}</td>
+          <td><a href="{% url 'stock_detail' stock.id %}">{{ stock.name }}</a></td>
           <td>{{ stock.symbol }}</td>
-          <td>${{ stock.price }}</td>
-          <td>${{ stock.market_cap }}</td>
+          <td>₹{{ stock.price }}</td>
+          <td>₹{{ stock.market_cap }}</td>
           <td>
             <a href="{% url 'add_to_portfolio' %}">Add new stock to portfolio</a>
           </td>
@@ -26,6 +30,6 @@
     </tbody>
   </table>
 
-  <a href="{% url 'add_to_portfolio' %}">Add new stock to portfolio</a>
+  <a href="{% url 'stock_portfolio' %}">View your portfolio</a>
 
-  {% endblock %}
+{% endblock %}
